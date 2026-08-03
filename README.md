@@ -1,13 +1,19 @@
-<img src="logo.svg" alt="plane-above" width="200">
+<img src="https://raw.githubusercontent.com/wrongcredentials/plane-above/v0.1.1/logo.svg" alt="plane-above" width="200">
 
 # Plane Above
+[![PyPI version](https://img.shields.io/pypi/v/plane-above.svg)](https://pypi.org/project/plane-above/)
+[![License](https://img.shields.io/pypi/l/plane-above.svg)](https://pypi.org/project/plane-above/)
+[![Python versions](https://img.shields.io/pypi/pyversions/plane-above.svg)](https://pypi.org/project/plane-above/)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](https://mypy-lang.org/)
+
 Plane Above is a python package featuring a convinient way to retrieve planes above certain point.
 
 <details>
   <summary>One notable usage example...</summary>
 
   Try <a href="https://t.me/plane_above_bot">Plane Above</a> telegram bot.
-  <img src="tg.png" alt="plane-above-bot" width="400">
+  <img src="https://raw.githubusercontent.com/wrongcredentials/plane-above/v0.1.1/tg.png" alt="tg-bot" width="400">
 </details>
 
 ## Before we start...
@@ -43,7 +49,6 @@ This is the last step where all data being returned in declared format.
 pip install plane-above
 ```
 
-
 ## Usage
 First, import library, create instance and pass your values of latitude & longitude as a tuple:
 ```python
@@ -65,8 +70,10 @@ In cases when there are no plane detected, or we failed to retrieve information 
 ```True, 0``` and ```False, 0``` respectively. Let's go further and see what are that 2 flying objects:
 ```python
 >>> for plane in pa.fetch():
-...     print(f"{plane.aircraft.manufacturer} {plane.aircraft.model}
-...     flying to {plane.route.destination.name} is {plane.state.altitude} meters above you!")
+...     print(
+...         f"{plane.aircraft.manufacturer} {plane.aircraft.model} flying to "
+...         f"{plane.route.destination.name} is {plane.state.altitude} meters above you!"
+...     )
 
 Boeing 777 212ER flying to London Heathrow Airport is 11232 meters above you!
 Airbus A330 342 flying to Brussels Airport (Zaventem Airport) is 1006 meters above you!
@@ -159,20 +166,20 @@ OpenSky Network allows to use it's api anonymously, but with limits.
 If you wish to extend your usage - consider obtaining ```client_id``` and  ```client_secret```
 [here](https://openskynetwork.github.io/opensky-api/rest.html#authentication). Then you pass it like this:
 ```python
->>> pa = PlaneAbove((52.4573212, 5.5301535), osn_id="your_client_id", osn_secret="your_client_secret")
+PlaneAbove((52.4573212, 5.5301535), osn_id="your_client_id", osn_secret="your_client_secret")
 ```
 
 In some cases your calls to OpenSky Network might be timed-out without any specific reason, that's due to OSN
 blocking policies and you probably would like to utilize proxy here as a workaround:
 ```python
->>> pa = PlaneAbove((52.4573212, 5.5301535), osn_proxy="http://username:password@host:port")
+PlaneAbove((52.4573212, 5.5301535), osn_proxy="http://username:password@host:port")
 ```
 Please note that this will be used for making an OSN request only; other sources won't be called with that proxy.
 
 One of our photo sources has a strict policy about making requests with 
 [unique and descriptive user-agents](https://www.planespotters.net/photo/api). That's doable with an extra param:
 ```python
->>> pa = PlaneAbove((52.4573212, 5.5301535), ps_user_agent="YourApp/1.0 (+https://example.com/contact)")
+PlaneAbove((52.4573212, 5.5301535), ps_user_agent="YourApp/1.0 (+https://example.com/contact)")
 ```
 However, you are free to skip it as it won't affect other photo sources.
 

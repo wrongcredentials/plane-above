@@ -71,7 +71,7 @@ class PlaneAbove:
         self.spotted = Spotted(*OSN.get_flying_objects(point, distance, osn_id, osn_secret, osn_proxy), errors=[])
 
     async def _retrieve_data(self, f_object: FlyingObject) -> tuple[FlyingObject, Aircraft, Route, Photo]:
-        async with httpx.AsyncClient() as async_client:
+        async with httpx.AsyncClient(timeout=httpx.Timeout(connect=2.0, read=4.0, write=2.0, pool=1.0)) as async_client:
             try:
                 aircraft_details, route = await asyncio.gather(
                     AircraftDetails.get_details(async_client, f_object.icao24),

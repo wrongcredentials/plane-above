@@ -1,0 +1,12 @@
+{
+  "icao": "RKPC",
+  "iata": "CJU",
+  "name": "Jeju International Airport",
+  "location": "Jeju",
+  "country": "Korea, Republic of",
+  "country_code": "KR",
+  "longitude": "0",
+  "latitude": "0",
+  "link": "https://airport-data.com/world-airports/RKPC-CJU/",
+  "status": 200
+}

@@ -1,0 +1,11 @@
+{
+  "status": 200,
+  "count": 1,
+  "data": [
+    {
+      "image": "https://airport-data.com/images/aircraft/thumbnails/001/744/001744757.jpg",
+      "link": "https://airport-data.com/aircraft/photo/001744757",
+      "photographer": "Guy with a camera"
+    }
+  ]
+}

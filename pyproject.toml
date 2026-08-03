@@ -1,0 +1,119 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "plane-above"
+description = "What’s flying up there, huh?"
+authors = [{name = "Ilia Andreevich"}]
+dynamic = ["version"]
+requires-python = ">=3.10"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+keywords = [
+    "aviation",
+    "aircraft",
+    "planes",
+    "flight-tracking",
+    "air-traffic",
+    "opensky",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+]
+dependencies = [
+    "httpx>=0.28.0",
+    "lxml>=5.1.0",
+    "python-dateutil>=2.9.0",
+    "country-converter>=1.3.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/wrongcredentials/plane-above/"
+Repository = "https://github.com/wrongcredentials/plane-above"
+Issues = "https://github.com/wrongcredentials/plane-above/issues"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1,<9.1.2",
+    "pytest-asyncio>=1.4.0,<1.5.0",
+    "pytest-httpx>=0.36.2,<0.37.0",
+    "pytest-cov>=7.1.0,<7.2.0",
+    "validators>=0.35.0",
+    "ruff>=0.16.0",
+    "mypy>=2.3.0",
+]
+
+[tool.setuptools.dynamic]
+version = {attr = "plane_above.__version__"}
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.format]
+quote-style = "double"
+exclude = ["tests/__init__.py"]
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "N",  # pep8-naming
+    "B",  # flake8-bugbear
+    "A",  # flake8-builtins
+    "C4",  # flake8-comprehensions
+    "PT",  # flake8-pytest-style
+    "UP",  # pyupgrade
+    "ERA",  # eradicate
+    "PL",  # pylint
+    "FAST",  # fastapi
+    "RUF",  # ruff specific rules
+]
+ignore = [
+    "PLR0913",  # Too many arguments in function definition
+    "PLR2004",  # Magic value used in comparison
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/__init__.py" = ["E501"]
+
+[tool.ruff.lint.flake8-comprehensions]
+allow-dict-calls-with-keyword-arguments = true
+
+[tool.ruff.lint.isort]
+length-sort = true
+
+[tool.pytest.ini_options]
+addopts = "-v --cov --cov-report term-missing --cov-fail-under=80"
+asyncio_default_fixture_loop_scope = "session"
+testpaths = ["tests"]
+
+[tool.coverage.run]
+source = ["plane_above"]
+omit = ["tests/*", "*/tests/*"]
+
+[tool.mypy]
+python_version = "3.10"
+ignore_missing_imports = true
+disallow_untyped_defs = true
+warn_unused_ignores = true
+no_implicit_optional = true
+check_untyped_defs = true
+warn_return_any = true
+strict_optional = true
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false

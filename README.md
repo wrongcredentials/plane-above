@@ -35,7 +35,7 @@ and contains information of ADS-B messages from transponder installed in aircraf
 After receiving states (if request was successful, we did not exceed limits and received at least one state)
 it picks crucial data and filters out excessive entries: for instance objects that are on ground will be discarded.
 At this point we already have some valuable data such as transponder hex code and flight callsign,
-along with registered altitude and velocity. 
+along with registered altitude and velocity.
 #### 4. FETCH DETAILS
 Based on previous step we enrich the data by making requests to multiple sources to retrieve information about aircraft
 such as: registration code, manufacturer and model, age (based on built date) and operating airline/registered owner.
@@ -79,7 +79,7 @@ Boeing 777 212ER flying to London Heathrow Airport is 11232 meters above you!
 Airbus A330 342 flying to Brussels Airport (Zaventem Airport) is 1006 meters above you!
 ```
 If you live in acynchronious environment, call ```async.fetch()``` instead:
-```python 
+```python
 >>> async for plane in pa.async_fetch():
     ...
 ```
@@ -176,7 +176,7 @@ PlaneAbove((52.4573212, 5.5301535), osn_proxy="http://username:password@host:por
 ```
 Please note that this will be used for making an OSN request only; other sources won't be called with that proxy.
 
-One of our photo sources has a strict policy about making requests with 
+One of our photo sources has a strict policy about making requests with
 [unique and descriptive user-agents](https://www.planespotters.net/photo/api). That's doable with an extra param:
 ```python
 PlaneAbove((52.4573212, 5.5301535), ps_user_agent="YourApp/1.0 (+https://example.com/contact)")
@@ -188,5 +188,5 @@ However, you are free to skip it as it won't affect other photo sources.
 * Aircraft data & photo, route & airport details: https://hexdb.io/
 * Aircraft data, route & airport details: https://adsbdb.com/
 * Aircraft photo, airport details: https://airport-data.com/
-* Aircraft data: https://flightdb.net/ 
+* Aircraft data: https://flightdb.net/
 * Aircraft photo: https://planespotters.net/

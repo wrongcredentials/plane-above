@@ -1,4 +1,4 @@
-<img src="https://raw.githubusercontent.com/wrongcredentials/plane-above/v0.1.1/logo.svg" alt="plane-above" width="200">
+<img src="https://raw.githubusercontent.com/wrongcredentials/plane-above/v0.1.1/logo.svg" alt="plane-above" width="170">
 
 # Plane Above
 [![PyPI version](https://img.shields.io/pypi/v/plane-above.svg)](https://pypi.org/project/plane-above/)
@@ -7,7 +7,7 @@
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](https://mypy-lang.org/)
 
-Plane Above is a python package featuring a convinient way to retrieve planes above certain point.
+🛩 Plane Above is a python package featuring a convinient way to retrieve planes above certain point.
 
 <details>
   <summary>One notable usage example...</summary>
@@ -78,7 +78,7 @@ In cases when there are no plane detected, or we failed to retrieve information 
 Boeing 777 212ER flying to London Heathrow Airport is 11232 meters above you!
 Airbus A330 342 flying to Brussels Airport (Zaventem Airport) is 1006 meters above you!
 ```
-If you live in acynchronious environment, call ```async.fetch()``` instead:
+⚠️ If you use acynchronious environment, call ```async_fetch()``` instead:
 ```python
 >>> async for plane in pa.async_fetch():
     ...
@@ -90,14 +90,12 @@ If you live in acynchronious environment, call ```async.fetch()``` instead:
 
   ```python
 class Aircraft:
-    registration: str
-    manufacturer: str
-    model: str
-    operator: str
-    age: float
+    registration: str  # Can be empty string.
+    manufacturer: str  # Can be empty string.
+    model: str  # Can be empty string.
+    operator: str  # Can be empty string.
+    age: float  # Don’t take age 0.0 as a really new plane, age likely was missing in our sources.
   ```
-  Note: don’t take age 0.0 as a really new plane, as age is might be missing from our sources;
-  all strings might be empty strings.
 </details>
 
 <details>
@@ -105,11 +103,10 @@ class Aircraft:
 
   ```python
 class Photo:
-    image_url: str
-    origin_url: str
-    photographer: str
+    image_url: str  # Can be empty string.
+    origin_url: str  # Can be empty string.
+    photographer: str  # Can be empty string.
   ```
-  Note: all strings might be empty strings.
 </details>
 
 <details>
@@ -118,8 +115,8 @@ class Photo:
   ```python
 class Airport:
     iata: str = "N/A"
-    name: str = "Unknown airport"
-    country_code: str = ""
+    name: str = "Unknown airport"  # If route is not found - "Unknown departuture" or "Unknown destination".
+    country_code: str = ""  # ISO2 (NL, KR, BR...).
   ```
 </details>
 
@@ -130,8 +127,8 @@ class Airport:
 class Route:
     departure: Airport
     destination: Airport
-    stops: list[Airport]
-    airline: str | None = None
+    stops: list[Airport]  # Mostly empty; Just a small percentage have stops in route.
+    airline: str | None = None  # Airline name performing flight; May differ from aircraft.operator.
   ```
 </details>
 
@@ -140,10 +137,9 @@ class Route:
 
   ```python
 class State:
-    altitude: int
-    velocity: int
+    altitude: int  # Geometric altitude  in meters. Can be below zero.
+    velocity: int  # Velocity over ground in m/s. Can be zero.
   ```
-  Note: velocity and/or altitude can be 0 if no data from transponder received.
 </details>
 
 <details>
@@ -151,9 +147,9 @@ class State:
 
   ```python
 class Plane:
-    icao24: str
-    callsign: str
-    country_code: str
+    icao24: str  # Always present.
+    callsign: str  # Can be empty string.
+    country_code: str  # ISO2 (NL, KR, BR...).
     aircraft: Aircraft
     route: Route
     state: State
@@ -161,7 +157,7 @@ class Plane:
   ```
 </details>
 
-## Limitations
+## Limitations & Workarounds
 OpenSky Network allows to use it's api anonymously, but with limits.
 If you wish to extend your usage - consider obtaining ```client_id``` and  ```client_secret```
 [here](https://openskynetwork.github.io/opensky-api/rest.html#authentication). Then you pass it like this:
@@ -184,7 +180,7 @@ PlaneAbove((52.4573212, 5.5301535), ps_user_agent="YourApp/1.0 (+https://example
 However, you are free to skip it as it won't affect other photo sources.
 
 ## Credits
-* Basic and essential: https://opensky-network.org/
+* Flying objects in area: https://opensky-network.org/
 * Aircraft data & photo, route & airport details: https://hexdb.io/
 * Aircraft data, route & airport details: https://adsbdb.com/
 * Aircraft photo, airport details: https://airport-data.com/

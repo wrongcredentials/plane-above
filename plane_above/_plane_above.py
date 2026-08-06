@@ -1,39 +1,14 @@
 import asyncio
-from typing import NamedTuple
-from dataclasses import dataclass
 from collections.abc import Generator, AsyncGenerator
 
 import httpx
 
-from .osn import OSN, FlyingObject
-from .route import Route, Airport, FlightRoute
+from .osn import OSN
 from .utils import PlaneAboveClient, log
+from .flight import FlightRoute
+from .models import Photo, Plane, State, Flight, Airport, Spotted, Aircraft, FlyingObject
 from .static import DEFAULT_DISTANCE_FROM_POINT
-from .aircraft import Photo, Aircraft, AircraftPhoto, AircraftDetails
-
-
-@dataclass(frozen=True)
-class State:
-    altitude: int
-    velocity: int
-
-
-class Plane(NamedTuple):
-    icao24: str
-    callsign: str
-    country_code: str
-    aircraft: Aircraft
-    route: Route
-    state: State
-    photo: Photo
-
-
-class Spotted(NamedTuple):
-    objects_raw: list
-    objects_filtered: list[FlyingObject]
-    success: bool
-    how_many: int
-    errors: list
+from .aircraft import AircraftPhoto, AircraftDetails
 
 
 class PlaneAbove:
@@ -74,9 +49,9 @@ class PlaneAbove:
         self,
         client: httpx.AsyncClient,
         f_object: FlyingObject,
-    ) -> tuple[FlyingObject, Aircraft, Route, Photo]:
+    ) -> tuple[FlyingObject, Aircraft, Flight, Photo]:
         try:
-            aircraft_details, route = await asyncio.gather(
+            aircraft_details, flight = await asyncio.gather(
                 AircraftDetails.get_details(client, f_object.icao24),
                 FlightRoute.get_route(client, f_object.callsign),
             )
@@ -88,7 +63,7 @@ class PlaneAbove:
                     aircraft.registration,
                     self._ps_user_agent,
                 )
-            return f_object, aircraft, route, photo
+            return f_object, aircraft, flight, photo
 
         except Exception as exc:
             log.error(f" ✈ Exception occurred for plane {f_object.icao24}: {exc}")
@@ -96,18 +71,18 @@ class PlaneAbove:
             return (
                 f_object,
                 Aircraft(registration="", manufacturer="", model="", operator="", age=0.0),
-                Route(departure=Airport(), destination=Airport(), stops=[]),
+                Flight(departure=Airport(), destination=Airport(), stops=[]),
                 Photo(image_url="", origin_url="", photographer=""),
             )
 
     @staticmethod
-    def _collect_data(f_object: FlyingObject, aircraft: Aircraft, route: Route, photo: Photo) -> Plane:
+    def _collect_data(f_object: FlyingObject, aircraft: Aircraft, flight: Flight, photo: Photo) -> Plane:
         return Plane(
             icao24=f_object.icao24,
             callsign=f_object.callsign,
             country_code=f_object.country_code,
             aircraft=aircraft,
-            route=route,
+            flight=flight,
             state=State(velocity=f_object.velocity, altitude=f_object.altitude),
             photo=photo,
         )

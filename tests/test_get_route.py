@@ -2,7 +2,7 @@ import httpx
 import pytest
 from pytest_httpx import HTTPXMock
 
-from plane_above.route import Route, Airport, FlightRoute
+from plane_above.flight import Flight, Airport, FlightRoute
 
 from . import (
     HX_ROUTE_URL,
@@ -29,17 +29,17 @@ from . import (
     SB_ROUTE_MP_RESP_200,
 )
 
-ROUTE_EMPTY = Route(
+ROUTE_EMPTY = Flight(
     departure=Airport(iata="N/A", name="Unknown departure", country_code=""),
     destination=Airport(iata="N/A", name="Unknown destination", country_code=""),
     stops=[],
 )
-ROUTE_AIRPORT_UNKNOWN = Route(
+ROUTE_AIRPORT_UNKNOWN = Flight(
     departure=Airport(iata="DEP", name="Unknown airport", country_code=""),
     destination=Airport(iata="DST", name="Unknown airport", country_code=""),
     stops=[],
 )
-ROUTE_HX = Route(
+ROUTE_HX = Flight(
     departure=Airport(
         iata="DEP",
         name="Valencia Airport",
@@ -53,7 +53,7 @@ ROUTE_HX = Route(
     stops=[],
     airline=None,
 )
-ROUTE_HX_WITH_STOP = Route(
+ROUTE_HX_WITH_STOP = Flight(
     departure=Airport(
         iata="DEP",
         name="Valencia Airport",
@@ -73,7 +73,7 @@ ROUTE_HX_WITH_STOP = Route(
     ],
     airline=None,
 )
-ROUTE_HX_AD = Route(
+ROUTE_HX_AD = Flight(
     departure=Airport(
         iata="DEP",
         name="Jeju International Airport",
@@ -87,7 +87,7 @@ ROUTE_HX_AD = Route(
     stops=[],
     airline=None,
 )
-ROUTE_SB = Route(
+ROUTE_SB = Flight(
     departure=Airport(
         iata="CRK",
         name="Diosdado Macapagal International Airport",
@@ -101,7 +101,7 @@ ROUTE_SB = Route(
     stops=[],
     airline="Jin Air",
 )
-ROUTE_SB_WITH_STOP = Route(
+ROUTE_SB_WITH_STOP = Flight(
     departure=Airport(
         iata="SGN",
         name="Tan Son Nhat International Airport",

@@ -124,7 +124,7 @@ class Airport:
   <summary>Route</summary>
 
   ```python
-class Route:
+class Flight:
     departure: Airport
     destination: Airport
     stops: list[Airport]  # Mostly empty; Just a small percentage have stops in route.
@@ -151,7 +151,7 @@ class Plane:
     callsign: str  # Can be empty string.
     country_code: str  # ISO2 (NL, KR, BR...).
     aircraft: Aircraft
-    route: Route
+    flight: Flight
     state: State
     photo: Photo
   ```

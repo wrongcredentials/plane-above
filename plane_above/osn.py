@@ -1,22 +1,13 @@
 import json
 import math
 from datetime import datetime, timedelta
-from dataclasses import dataclass
 
 import httpx
 import country_converter
 
 from .utils import log
+from .models import FlyingObject
 from .static import EARTH_RADIUS, OPENSKY_AUTH_URL, AIRCRAFT_IN_AREA_SOURCE_URL, DEFAULT_DISTANCE_FROM_POINT
-
-
-@dataclass(frozen=True)
-class FlyingObject:
-    icao24: str
-    callsign: str
-    country_code: str
-    velocity: int
-    altitude: int
 
 
 class OSNAuth:

@@ -1,6 +1,5 @@
-from .route import Route, Airport
-from .aircraft import Photo, Aircraft
-from ._plane_above import Plane, State, PlaneAbove
+from .models import Photo, Plane, State, Flight, Airport, Aircraft
+from ._plane_above import PlaneAbove
 
-__all__ = ["Aircraft", "Airport", "Photo", "Plane", "PlaneAbove", "Route", "State"]
-__version__ = "0.1.1"
+__all__ = ["Aircraft", "Airport", "Flight", "Photo", "Plane", "PlaneAbove", "State"]
+__version__ = "0.2.0-rc"

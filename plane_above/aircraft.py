@@ -1,7 +1,6 @@
 import asyncio
 from datetime import date, datetime
 from collections import ChainMap
-from dataclasses import dataclass
 from urllib.parse import urljoin
 
 import httpx
@@ -9,6 +8,7 @@ from lxml import html
 from dateutil.relativedelta import relativedelta
 
 from .utils import HttpResult, log, async_get
+from .models import Photo, Aircraft
 from .static import (
     AIRCRAFT_PHOTO_AD_SOURCE_URL,
     AIRCRAFT_PHOTO_AD_STATIC_URL,
@@ -18,22 +18,6 @@ from .static import (
     AIRCRAFT_DETAILS_HX_SOURCE_URL,
     AIRCRAFT_DETAILS_SB_SOURCE_URL,
 )
-
-
-@dataclass(frozen=True)
-class Aircraft:
-    registration: str
-    manufacturer: str
-    model: str
-    operator: str
-    age: float
-
-
-@dataclass(frozen=True)
-class Photo:
-    image_url: str
-    origin_url: str
-    photographer: str
 
 
 class AircraftDetails:

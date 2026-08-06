@@ -6,7 +6,7 @@ import httpx
 from .osn import OSN
 from .utils import PlaneAboveClient, log
 from .flight import FlightRoute
-from .models import Photo, Plane, State, Flight, Airport, Spotted, Aircraft, FlyingObject
+from .models import Above, Photo, State, Flight, Airport, Spotted, Aircraft, FlyingObject
 from .static import DEFAULT_DISTANCE_FROM_POINT
 from .aircraft import AircraftPhoto, AircraftDetails
 
@@ -15,7 +15,7 @@ class PlaneAbove:
     """Retrieving detailed information about flying objects above given point.
 
     Fetches aircraft details, flight routes, and photos for each spotted object,
-    combining data from multiple sources into structured `Plane` instances.
+    combining data from multiple sources into structured `Above` instances.
 
     Attributes:
         spotted (Spotted): Container with flying objects and additional info.
@@ -76,8 +76,8 @@ class PlaneAbove:
             )
 
     @staticmethod
-    def _collect_data(f_object: FlyingObject, aircraft: Aircraft, flight: Flight, photo: Photo) -> Plane:
-        return Plane(
+    def _collect_data(f_object: FlyingObject, aircraft: Aircraft, flight: Flight, photo: Photo) -> Above:
+        return Above(
             icao24=f_object.icao24,
             callsign=f_object.callsign,
             country_code=f_object.country_code,
@@ -87,13 +87,13 @@ class PlaneAbove:
             photo=photo,
         )
 
-    def fetch(self) -> Generator[Plane]:
-        """Retrieve detailed Plane data for all spotted flying objects.
+    def fetch(self) -> Generator[Above]:
+        """Retrieve detailed data for all spotted flying objects.
 
-        Iterates over filtered flying objects, fetches data for each and yields populated Plane instances.
+        Iterates over filtered flying objects, fetches data for each and yields populated Above instances.
 
         Yields:
-            Plane: Structured aircraft data for each spotted object.
+            Above: Structured Aircraft, Flight and State data for each spotted object.
         """
         planes_generator = self.async_fetch()
         loop = asyncio.new_event_loop()
@@ -106,13 +106,13 @@ class PlaneAbove:
             loop.run_until_complete(planes_generator.aclose())
             loop.close()
 
-    async def async_fetch(self) -> AsyncGenerator[Plane]:
-        """Asynchronously retrieve detailed Plane data for all spotted flying objects.
+    async def async_fetch(self) -> AsyncGenerator[Above]:
+        """Asynchronously retrieve detailed data for all spotted flying objects.
 
-        Iterates over filtered flying objects, fetches data for each and yields populated Plane instances.
+        Iterates over filtered flying objects, fetches data for each and yields populated Above instances.
 
         Yields:
-            Plane: Structured aircraft data for each spotted object.
+            Above: Structured Aircraft, Flight and State data for each spotted object.
         """
         async with PlaneAboveClient() as client:
             for f_object in self.spotted.objects_filtered:

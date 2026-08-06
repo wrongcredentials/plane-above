@@ -2,8 +2,8 @@
 
 # Plane Above
 [![PyPI version](https://img.shields.io/pypi/v/plane-above.svg)](https://pypi.org/project/plane-above/)
-[![License](https://img.shields.io/pypi/l/plane-above.svg)](https://pypi.org/project/plane-above/)
 [![Python versions](https://img.shields.io/pypi/pyversions/plane-above.svg)](https://pypi.org/project/plane-above/)
+[![License](https://img.shields.io/pypi/l/plane-above.svg)](https://pypi.org/project/plane-above/)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](https://mypy-lang.org/)
 
@@ -38,11 +38,11 @@ At this point we already have some valuable data such as transponder hex code an
 along with registered altitude and velocity.
 #### 4. FETCH DETAILS
 Based on previous step we enrich the data by making requests to multiple sources to retrieve information about aircraft
-such as: registration code, manufacturer and model, age (based on built date) and operating airline/registered owner.
-It continues with the route and send multiple requests as well to receive information about departure,
-destination and for some cases midpoint airports. Finally, it searches for the aircraft photo.
-#### 5. BUILD RESULT
-This is the last step where all data being returned in declared format.
+like manufacturer, model, age (based on built date), photo and others.
+At the same time it fecthes flight route by sending multiple requests as well to receive information about departure,
+destination and for some cases midpoint airports.
+#### 5. COLLECT RESULT
+This is the last step where all data are being collected and returned in [declared format](#object-reference).
 
 ## Installation
 ```bash
@@ -59,20 +59,20 @@ Optionally, you can pass a distance attribute (in km, 15 by default):
 ```python
 >>> pa = PlaneAbove((52.4573212, 5.5301535), distance=20)
 ```
-Great, by this time we already know what is happening above that point, so let's check it:
+By this time we already know what is happening _above_, so let's check:
 ```python
 >>> pa.spotted.success
 True
 >>> pa.spotted.how_many
 2
 ```
-In cases when there are no plane detected, or we failed to retrieve information you will get
-```True, 0``` and ```False, 0``` respectively. Let's go further and see what are that 2 flying objects:
+In cases when there are no any planes detected, or we failed to retrieve information you will get
+```True, 0``` and ```False, 0``` respectively. Let's go further and see what are these 2 flying objects:
 ```python
->>> for plane in pa.fetch():
+>>> for above in pa.fetch():
 ...     print(
-...         f"{plane.aircraft.manufacturer} {plane.aircraft.model} flying to "
-...         f"{plane.route.destination.name} is {plane.state.altitude} meters above you!"
+...         f"{above.aircraft.manufacturer} {above.aircraft.model} flying to "
+...         f"{above.flight.destination.name} is {above.state.altitude} meters above you!"
 ...     )
 
 Boeing 777 212ER flying to London Heathrow Airport is 11232 meters above you!
@@ -80,11 +80,27 @@ Airbus A330 342 flying to Brussels Airport (Zaventem Airport) is 1006 meters abo
 ```
 ⚠️ If you use acynchronious environment, call ```async_fetch()``` instead:
 ```python
->>> async for plane in pa.async_fetch():
+>>> async for above in pa.async_fetch():
     ...
 ```
 
 ## Object Reference
+```fetch()``` and ```async_fetch()``` methods will return you iterators consisting of ```Above``` objects.
+<details>
+  <summary>Above</summary>
+
+  ```python
+class Above:
+    icao24: str  # Hex code of the transponder installed in aircraft; always present.
+    callsign: str  # Can be empty string.
+    country_code: str  # ISO2 (NL, KR, BR...).
+    aircraft: Aircraft
+    flight: Flight
+    state: State
+    photo: Photo
+  ```
+</details>
+
 <details>
   <summary>Aircraft</summary>
 
@@ -94,7 +110,7 @@ class Aircraft:
     manufacturer: str  # Can be empty string.
     model: str  # Can be empty string.
     operator: str  # Can be empty string.
-    age: float  # Don’t take age 0.0 as a really new plane, age likely was missing in our sources.
+    age: float  # Don’t take 0.0 as a really new plane; age likely was missing in our sources.
   ```
 </details>
 
@@ -110,6 +126,16 @@ class Photo:
 </details>
 
 <details>
+  ```python
+class Flight:
+    departure: Airport
+    destination: Airport
+    stops: list[Airport]  # Mostly empty; Just a small percentage have stops in route.
+    airline: str | None = None  # Airline performing flight; May differ from aircraft.operator.
+  ```
+</details>
+
+<details>
   <summary>Airport</summary>
 
   ```python
@@ -117,18 +143,6 @@ class Airport:
     iata: str = "N/A"
     name: str = "Unknown airport"  # If route is not found - "Unknown departuture" or "Unknown destination".
     country_code: str = ""  # ISO2 (NL, KR, BR...).
-  ```
-</details>
-
-<details>
-  <summary>Route</summary>
-
-  ```python
-class Flight:
-    departure: Airport
-    destination: Airport
-    stops: list[Airport]  # Mostly empty; Just a small percentage have stops in route.
-    airline: str | None = None  # Airline name performing flight; May differ from aircraft.operator.
   ```
 </details>
 
@@ -142,37 +156,25 @@ class State:
   ```
 </details>
 
-<details>
-  <summary>Plane</summary>
-
-  ```python
-class Plane:
-    icao24: str  # Always present.
-    callsign: str  # Can be empty string.
-    country_code: str  # ISO2 (NL, KR, BR...).
-    aircraft: Aircraft
-    flight: Flight
-    state: State
-    photo: Photo
-  ```
-</details>
-
 ## Limitations & Workarounds
-OpenSky Network allows to use it's api anonymously, but with limits.
+### OpenSky Network Authentication
+OSN allows to use it's api anonymously, but with limits.
 If you wish to extend your usage - consider obtaining ```client_id``` and  ```client_secret```
-[here](https://openskynetwork.github.io/opensky-api/rest.html#authentication). Then you pass it like this:
+[here](https://openskynetwork.github.io/opensky-api/rest.html#authentication). Then you pass extra params:
 ```python
 PlaneAbove((52.4573212, 5.5301535), osn_id="your_client_id", osn_secret="your_client_secret")
 ```
 
-In some cases your calls to OpenSky Network might be timed-out without any specific reason, that's due to OSN
+### OpenSky Network Timeouts
+In some cases your calls to OSN might be timed-out without any specific reason, that's due to their
 blocking policies and you probably would like to utilize proxy here as a workaround:
 ```python
 PlaneAbove((52.4573212, 5.5301535), osn_proxy="http://username:password@host:port")
 ```
 Please note that this will be used for making an OSN request only; other sources won't be called with that proxy.
 
-One of our photo sources has a strict policy about making requests with
+### Planespotters.net additional requirement
+This photo source has a strict policy about making requests with
 [unique and descriptive user-agents](https://www.planespotters.net/photo/api). That's doable with an extra param:
 ```python
 PlaneAbove((52.4573212, 5.5301535), ps_user_agent="YourApp/1.0 (+https://example.com/contact)")

@@ -49,7 +49,7 @@ class State:
     velocity: int
 
 
-class Plane(NamedTuple):
+class Above(NamedTuple):
     icao24: str
     callsign: str
     country_code: str

@@ -8,7 +8,7 @@ from .utils import PlaneAboveClient, log
 from .flight import FlightRoute
 from .models import Above, Photo, State, Flight, Airport, Spotted, Aircraft, FlyingObject
 from .static import DEFAULT_DISTANCE_FROM_POINT
-from .aircraft import AircraftPhoto, AircraftDetails
+from .aircraft import AircraftDetails
 
 
 class PlaneAbove:
@@ -45,47 +45,47 @@ class PlaneAbove:
         self._ps_user_agent = ps_user_agent
         self.spotted = Spotted(*OSN.get_flying_objects(point, distance, osn_id, osn_secret, osn_proxy), errors=[])
 
-    async def _retrieve_data(
+    async def _collect_data(
         self,
         client: httpx.AsyncClient,
         f_object: FlyingObject,
-    ) -> tuple[FlyingObject, Aircraft, Flight, Photo]:
+    ) -> tuple[Aircraft, Flight, State]:
         try:
-            aircraft_details, flight = await asyncio.gather(
-                AircraftDetails.get_details(client, f_object.icao24),
-                FlightRoute.get_route(client, f_object.callsign),
-            )
-            aircraft, photo = aircraft_details
-            if not all((photo.image_url, photo.origin_url)):
-                photo = await AircraftPhoto.get_photo(
+            aircraft, flight = await asyncio.gather(
+                AircraftDetails.get_details(
                     client,
                     f_object.icao24,
-                    aircraft.registration,
+                    f_object.country,
                     self._ps_user_agent,
-                )
-            return f_object, aircraft, flight, photo
+                ),
+                FlightRoute.get_route(client, f_object.callsign),
+            )
+            return aircraft, flight, f_object.state
 
         except Exception as exc:
             log.error(f" ✈ Exception occurred for plane {f_object.icao24}: {exc}")
             self.spotted.errors.append((f"{f_object.icao24=}", exc))
             return (
-                f_object,
-                Aircraft(registration="", manufacturer="", model="", operator="", age=0.0),
-                Flight(departure=Airport(), destination=Airport(), stops=[]),
-                Photo(image_url="", origin_url="", photographer=""),
+                Aircraft(
+                    icao24=f_object.icao24,
+                    registration="",
+                    manufacturer="",
+                    model="",
+                    type_code="",
+                    country=f_object.country,
+                    operator="",
+                    age=0.0,
+                    photos=[Photo(image_url="", origin_url="", photographer="")],
+                ),
+                Flight(
+                    callsign=f_object.callsign,
+                    departure=Airport(),
+                    destination=Airport(),
+                    stops=[],
+                    airline="",
+                ),
+                f_object.state,
             )
-
-    @staticmethod
-    def _collect_data(f_object: FlyingObject, aircraft: Aircraft, flight: Flight, photo: Photo) -> Above:
-        return Above(
-            icao24=f_object.icao24,
-            callsign=f_object.callsign,
-            country_code=f_object.country_code,
-            aircraft=aircraft,
-            flight=flight,
-            state=State(velocity=f_object.velocity, altitude=f_object.altitude),
-            photo=photo,
-        )
 
     def fetch(self) -> Generator[Above]:
         """Retrieve detailed data for all spotted flying objects.
@@ -116,4 +116,4 @@ class PlaneAbove:
         """
         async with PlaneAboveClient() as client:
             for f_object in self.spotted.objects_filtered:
-                yield self._collect_data(*await self._retrieve_data(client, f_object))
+                yield Above(*await self._collect_data(client, f_object))

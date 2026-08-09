@@ -1,7 +1,7 @@
 import pytest
 import validators
 
-from plane_above.osn import FlyingObject
+from plane_above.models import State, FlyingObject
 
 SUITE_BEL204_PHSFR = [
     [
@@ -120,27 +120,35 @@ def test_sync_fetch(plane_above_mock):
         FlyingObject(
             icao24="44ccc8",
             callsign="BEL204",
-            country_code="BE",
-            velocity=338,
-            altitude=1006,
+            country="Belgium",
+            state=State(
+                velocity=338,
+                altitude=1006,
+                latitude=51.0993,
+                longitude=4.5493,
+            ),
         ),
         FlyingObject(
             icao24="4864fa",
             callsign="PHSFR",
-            country_code="NL",
-            velocity=174,
-            altitude=366,
+            country="Kingdom of the Netherlands",
+            state=State(
+                velocity=174,
+                altitude=366,
+                latitude=51.5724,
+                longitude=5.2843,
+            ),
         ),
     ]
     assert plane_above_mock.spotted.errors == []
     assert plane_above_mock.spotted.success is True
     assert plane_above_mock.spotted.how_many == 2
-    for plane in plane_above_mock.fetch():
-        assert validators.url(plane.photo.image_url) is True
-        assert validators.url(plane.photo.origin_url) is True
-        assert len(plane.route.stops) == 0
-        assert any(plane.aircraft.__dict__.values())
-        assert any(plane.route.__dict__.values())
+    for above in plane_above_mock.fetch():
+        assert validators.url(above.photo.image_url) is True
+        assert validators.url(above.photo.origin_url) is True
+        assert len(above.route.stops) == 0
+        assert any(above.aircraft.__dict__.values())
+        assert any(above.route.__dict__.values())
 
 
 @pytest.mark.asyncio
@@ -155,23 +163,31 @@ async def test_async_fetch(plane_above_mock):
         FlyingObject(
             icao24="70209e",
             callsign="BBC305",
-            country_code="BD",
-            velocity=884,
-            altitude=11300,
+            country="Bangladesh",
+            state=State(
+                velocity=884,
+                altitude=11300,
+                latitude=52.3129,
+                longitude=5.6401,
+            ),
         ),
         FlyingObject(
             icao24="503cbf",
             callsign="ASL20K",
-            country_code="LT",
-            velocity=499,
-            altitude=2172,
+            country="Lithuania",
+            state=State(
+                velocity=499,
+                altitude=2172,
+                latitude=52.4818,
+                longitude=4.8246,
+            ),
         ),
     ]
     assert plane_above_mock.spotted.errors == []
     assert plane_above_mock.spotted.success is True
     assert plane_above_mock.spotted.how_many == 2
-    async for plane in plane_above_mock.async_fetch():
-        assert validators.url(plane.photo.image_url) is True
-        assert validators.url(plane.photo.origin_url) is True
-        assert all(plane.route.departure.__dict__.values())
-        assert all(plane.route.destination.__dict__.values())
+    async for above in plane_above_mock.async_fetch():
+        assert validators.url(above.photo.image_url) is True
+        assert validators.url(above.photo.origin_url) is True
+        assert all(above.route.departure.__dict__.values())
+        assert all(above.route.destination.__dict__.values())

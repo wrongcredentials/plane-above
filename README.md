@@ -38,7 +38,7 @@ At this point we already have some valuable data such as transponder hex code an
 along with registered altitude and velocity.
 #### 4. FETCH DETAILS
 Based on previous step we enrich the data by making requests to multiple sources to retrieve information about aircraft
-like manufacturer, model, age (based on built date), photo and others.
+like manufacturer, model, age (based on built date), photo and some others.
 At the same time it fecthes flight route by sending multiple requests as well to receive information about departure,
 destination and for some cases midpoint airports.
 #### 5. COLLECT RESULT
@@ -51,16 +51,16 @@ pip install plane-above
 
 ## Usage
 First, import library, create instance and pass your values of latitude & longitude as a tuple:
-```python
+```pycon
 >>> from plane_above import PlaneAbove
 >>> pa = PlaneAbove((52.4573212, 5.5301535))
 ```
 Optionally, you can pass a distance attribute (in km, 15 by default):
-```python
+```pycon
 >>> pa = PlaneAbove((52.4573212, 5.5301535), distance=20)
 ```
 By this time we already know what is happening _above_, so let's check:
-```python
+```pycon
 >>> pa.spotted.success
 True
 >>> pa.spotted.how_many
@@ -68,7 +68,7 @@ True
 ```
 In cases when there are no any planes detected, or we failed to retrieve information you will get
 ```True, 0``` and ```False, 0``` respectively. Let's go further and see what are these 2 flying objects:
-```python
+```pycon
 >>> for above in pa.fetch():
 ...     print(
 ...         f"{above.aircraft.manufacturer} {above.aircraft.model} flying to "
@@ -79,81 +79,86 @@ Boeing 777 212ER flying to London Heathrow Airport is 11232 meters above you!
 Airbus A330 342 flying to Brussels Airport (Zaventem Airport) is 1006 meters above you!
 ```
 ⚠️ If you use acynchronious environment, call ```async_fetch()``` instead:
-```python
->>> async for above in pa.async_fetch():
+```text
+async for above in pa.async_fetch():
     ...
 ```
 
 ## Object Reference
-```fetch()``` and ```async_fetch()``` methods will return you iterators consisting of ```Above``` objects.
+Both ```fetch()``` and ```async_fetch()``` methods will return an iterator consisting of ```Above``` objects.
 <details>
   <summary>Above</summary>
 
-  ```python
+```python
 class Above:
-    icao24: str  # Hex code of the transponder installed in aircraft; always present.
-    callsign: str  # Can be empty string.
-    country_code: str  # ISO2 (NL, KR, BR...).
     aircraft: Aircraft
     flight: Flight
     state: State
-    photo: Photo
-  ```
+ ```
 </details>
 
 <details>
   <summary>Aircraft</summary>
 
-  ```python
+```python
 class Aircraft:
-    registration: str  # Can be empty string.
-    manufacturer: str  # Can be empty string.
-    model: str  # Can be empty string.
-    operator: str  # Can be empty string.
-    age: float  # Don’t take 0.0 as a really new plane; age likely was missing in our sources.
-  ```
+    icao24: str  # Hex code of the transponder installed in the aircraft.
+    country: str  # Origin country from the transponder.
+    age: float  # Don’t take 0.0 as a brand new plane; age likely was missing from our sources.
+    photos: list[Photo]
+    registration: str = ""
+    manufacturer: str = ""
+    model: str = ""
+    type_code: str = ""  # ICAO type code.
+    operator: str = ""
+```
 </details>
 
 <details>
   <summary>Photo</summary>
 
-  ```python
+```python
 class Photo:
-    image_url: str  # Can be empty string.
-    origin_url: str  # Can be empty string.
-    photographer: str  # Can be empty string.
-  ```
+    image_url: str = ""
+    origin_url: str = ""
+    photographer: str = ""
+ ```
 </details>
 
 <details>
-  ```python
+  <summary>Flight</summary>
+
+```python
 class Flight:
+    callsign: str  # Might be empty string if not received.
     departure: Airport
     destination: Airport
     stops: list[Airport]  # Mostly empty; Just a small percentage have stops in route.
-    airline: str | None = None  # Airline performing flight; May differ from aircraft.operator.
-  ```
+    airline: str = ""  # Airline performing flight; May differ from aircraft.operator.
+```
 </details>
 
 <details>
   <summary>Airport</summary>
 
-  ```python
+```python
 class Airport:
     iata: str = "N/A"
-    name: str = "Unknown airport"  # If route is not found - "Unknown departuture" or "Unknown destination".
-    country_code: str = ""  # ISO2 (NL, KR, BR...).
-  ```
+    name: str = "Unknown airport"  # If route is not found - "Unknown departure" or "Unknown destination".
+    country_code: str = "UN"  # ISO2 code (NL, KR, BR...).
+```
 </details>
 
 <details>
   <summary>State</summary>
 
-  ```python
+```python
 class State:
     altitude: int  # Geometric altitude  in meters. Can be below zero.
     velocity: int  # Velocity over ground in m/s. Can be zero.
-  ```
+    latitude: float | None = None  # WGS-84 latitude in decimal degrees.
+    longitude: float | None = None  # WGS-84 longitude in decimal degrees.
+```
 </details>
 
 ## Limitations & Workarounds
@@ -166,7 +171,7 @@ PlaneAbove((52.4573212, 5.5301535), osn_id="your_client_id", osn_secret="your_cl
 ```
 
 ### OpenSky Network Timeouts
-In some cases your calls to OSN might be timed-out without any specific reason, that's due to their
+In some cases your calls to OSN might be timed-out without any specific reason. That's due to their
 blocking policies and you probably would like to utilize proxy here as a workaround:
 ```python
 PlaneAbove((52.4573212, 5.5301535), osn_proxy="http://username:password@host:port")

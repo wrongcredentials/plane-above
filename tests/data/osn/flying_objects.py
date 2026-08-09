@@ -25,7 +25,7 @@ ZERO_VELOCITY = [
     [
         "39e680",
         "  AFR94XK ",
-        "France",
+        "France ",
         1686569534,
         1686569534,
         5.7613,

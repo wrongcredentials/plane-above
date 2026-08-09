@@ -81,13 +81,14 @@ async def test_all_photo_sources_ok(
     httpx_mock: HTTPXMock,
     aircraft_icao: str,
     aircraft_registration: str,
+    ps_user_agent: str,
 ):
     httpx_mock.add_response(url=HX_PHOTO_URL, **HX_PHOTO_RESP_200)
     httpx_mock.add_response(url=AD_PHOTO_URL, **AD_PHOTO_RESP_200)
     httpx_mock.add_response(url=PS_HEX_PHOTO_URL, **PS_PHOTO_RESP_200)
     httpx_mock.add_response(url=PS_REG_PHOTO_URL, **PS_PHOTO_RESP_200)
 
-    photo = await AircraftPhoto.get_photo(async_client, aircraft_icao, aircraft_registration)
+    photo = await AircraftPhoto.get_photo(async_client, aircraft_icao, aircraft_registration, ps_user_agent)
     assert photo == PHOTO_HX
 
 
@@ -97,13 +98,14 @@ async def test_all_photo_sources_empty(
     httpx_mock: HTTPXMock,
     aircraft_icao: str,
     aircraft_registration: str,
+    ps_user_agent: str,
 ):
     httpx_mock.add_response(url=HX_PHOTO_URL, **HX_PHOTO_RESP_404)
     httpx_mock.add_response(url=AD_PHOTO_URL, **AD_PHOTO_RESP_404)
     httpx_mock.add_response(url=PS_HEX_PHOTO_URL, **PS_PHOTO_RESP_404)
     httpx_mock.add_response(url=PS_REG_PHOTO_URL, **PS_PHOTO_RESP_404)
 
-    photo = await AircraftPhoto.get_photo(async_client, aircraft_icao, aircraft_registration)
+    photo = await AircraftPhoto.get_photo(async_client, aircraft_icao, aircraft_registration, ps_user_agent)
     assert photo == PHOTO_EMPTY
 
 
@@ -113,13 +115,14 @@ async def test_all_photo_sources_unavailable(
     httpx_mock: HTTPXMock,
     aircraft_icao: str,
     aircraft_registration: str,
+    ps_user_agent: str,
 ):
     httpx_mock.add_response(url=HX_PHOTO_URL, **HX_PHOTO_RESP_502)
     httpx_mock.add_response(url=AD_PHOTO_URL, **AD_PHOTO_RESP_502)
     httpx_mock.add_response(url=PS_HEX_PHOTO_URL, **PS_PHOTO_RESP_502)
     httpx_mock.add_response(url=PS_REG_PHOTO_URL, **PS_PHOTO_RESP_502)
 
-    photo = await AircraftPhoto.get_photo(async_client, aircraft_icao, aircraft_registration)
+    photo = await AircraftPhoto.get_photo(async_client, aircraft_icao, aircraft_registration, ps_user_agent)
 
     assert photo == PHOTO_EMPTY
 
@@ -130,13 +133,14 @@ async def test_hx_photo_source_empty(
     httpx_mock: HTTPXMock,
     aircraft_icao: str,
     aircraft_registration: str,
+    ps_user_agent: str,
 ):
     httpx_mock.add_response(url=HX_PHOTO_URL, **HX_PHOTO_RESP_404)
     httpx_mock.add_response(url=AD_PHOTO_URL, **AD_PHOTO_RESP_200)
     httpx_mock.add_response(url=PS_HEX_PHOTO_URL, **PS_PHOTO_RESP_200)
     httpx_mock.add_response(url=PS_REG_PHOTO_URL, **PS_PHOTO_RESP_200)
 
-    photo = await AircraftPhoto.get_photo(async_client, aircraft_icao, aircraft_registration)
+    photo = await AircraftPhoto.get_photo(async_client, aircraft_icao, aircraft_registration, ps_user_agent)
 
     assert photo == PHOTO_AD
 
@@ -147,12 +151,13 @@ async def test_hx_ad_photo_sources_empty(
     httpx_mock: HTTPXMock,
     aircraft_icao: str,
     aircraft_registration: str,
+    ps_user_agent: str,
 ):
     httpx_mock.add_response(url=HX_PHOTO_URL, **HX_PHOTO_RESP_502)
     httpx_mock.add_response(url=AD_PHOTO_URL, **AD_PHOTO_RESP_404)
     httpx_mock.add_response(url=PS_HEX_PHOTO_URL, **PS_PHOTO_RESP_200)
     httpx_mock.add_response(url=PS_REG_PHOTO_URL, **PS_PHOTO_RESP_200)
 
-    photo = await AircraftPhoto.get_photo(async_client, aircraft_icao, aircraft_registration)
+    photo = await AircraftPhoto.get_photo(async_client, aircraft_icao, aircraft_registration, ps_user_agent)
 
     assert photo == PHOTO_PS

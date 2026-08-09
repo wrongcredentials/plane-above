@@ -23,8 +23,8 @@ class FlightRoute:
         result = await async_get(_client, AIRPORT_DETAILS_AD_SOURCE_URL, params=dict(iata=iata))
         return Airport(
             iata=iata,
-            name=result.json_data.get("name", "Unknown airport"),
-            country_code=result.json_data.get("country_code") or "",
+            name=result.json_data.get("name") or "Unknown airport",
+            country_code=result.json_data.get("country_code") or Airport.country_code,
         )
 
     @classmethod
@@ -38,7 +38,7 @@ class FlightRoute:
                     cls._get_airport_details(_client, destination_iata),
                     *[cls._get_airport_details(_client, stop_iata) for stop_iata in stops],
                 )
-                return Flight(departure=departure, destination=destination, stops=stops)
+                return Flight(callsign=callsign, departure=departure, destination=destination, stops=stops)
 
             except ValueError:
                 log.error(f" ✈ Cannot parse route for {callsign}: {route}.")
@@ -55,23 +55,24 @@ class FlightRoute:
         departure = response.get("origin", {})
         destination = response.get("destination", {})
         stop = response.get("midpoint", {})
-        airline = response.get("airline", {}).get("name")
+        airline = response.get("airline", {}).get("name") or Flight.airline
         return Flight(
+            callsign=callsign,
             departure=Airport(
-                iata=departure.get("iata_code"),
-                name=departure.get("name"),
-                country_code=departure.get("country_iso_name"),
+                iata=departure.get("iata_code") or Airport.iata,
+                name=departure.get("name") or Airport.name,
+                country_code=departure.get("country_iso_name") or Airport.country_code,
             ),
             destination=Airport(
-                iata=destination.get("iata_code"),
-                name=destination.get("name"),
-                country_code=destination.get("country_iso_name"),
+                iata=destination.get("iata_code") or Airport.iata,
+                name=destination.get("name") or Airport.name,
+                country_code=destination.get("country_iso_name") or Airport.country_code,
             ),
             stops=[
                 Airport(
-                    iata=stop.get("iata_code"),
-                    name=stop.get("name"),
-                    country_code=stop.get("country_iso_name"),
+                    iata=stop.get("iata_code") or Airport.iata,
+                    name=stop.get("name") or Airport.name,
+                    country_code=stop.get("country_iso_name") or Airport.country_code,
                 ),
             ]
             if stop
@@ -89,8 +90,9 @@ class FlightRoute:
                 return route
 
         return Flight(
+            callsign=callsign or "",
             departure=Airport(name="Unknown departure"),
             destination=Airport(name="Unknown destination"),
             stops=[],
-            airline=None,
+            airline=Flight.airline,
         )

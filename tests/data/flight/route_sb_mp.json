@@ -24,7 +24,7 @@
         "name": "Tan Son Nhat International Airport"
       },
       "midpoint": {
-        "country_iso_name": "HK",
+        "country_iso_name": null,
         "country_name": "Hong Kong",
         "elevation": 28,
         "iata_code": "HKG",

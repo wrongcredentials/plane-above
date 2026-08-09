@@ -7,11 +7,7 @@ from ._plane_above import PlaneAbove
 
 def __getattr__(name: str) -> Any:
     if name == "Plane":
-        warnings.warn(
-            "'Plane' is deprecated since v0.2.0 and will be removed in v1.0.0, use 'Above' instead",
-            DeprecationWarning,
-            stacklevel=2,
-        )
+        warnings.warn("'Plane' will be removed in v1.0.0, use 'Above'", DeprecationWarning, stacklevel=2)
         return Above
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 

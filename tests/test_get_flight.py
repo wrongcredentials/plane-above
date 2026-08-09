@@ -7,6 +7,7 @@ from plane_above.flight import Flight, Airport, FlightRoute
 from . import (
     HX_ROUTE_URL,
     SB_ROUTE_URL,
+    FLIGHT_CALLSIGN,
     HX_ROUTE_RESP_200,
     HX_ROUTE_RESP_404,
     HX_ROUTE_RESP_502,
@@ -29,17 +30,26 @@ from . import (
     SB_ROUTE_MP_RESP_200,
 )
 
+CALLSIGN_EMPTY = Flight(
+    callsign="",
+    departure=Airport(iata="N/A", name="Unknown departure", country_code="UN"),
+    destination=Airport(iata="N/A", name="Unknown destination", country_code="UN"),
+    stops=[],
+)
 ROUTE_EMPTY = Flight(
-    departure=Airport(iata="N/A", name="Unknown departure", country_code=""),
-    destination=Airport(iata="N/A", name="Unknown destination", country_code=""),
+    callsign=FLIGHT_CALLSIGN,
+    departure=Airport(iata="N/A", name="Unknown departure", country_code="UN"),
+    destination=Airport(iata="N/A", name="Unknown destination", country_code="UN"),
     stops=[],
 )
 ROUTE_AIRPORT_UNKNOWN = Flight(
-    departure=Airport(iata="DEP", name="Unknown airport", country_code=""),
-    destination=Airport(iata="DST", name="Unknown airport", country_code=""),
+    callsign=FLIGHT_CALLSIGN,
+    departure=Airport(iata="DEP", name="Unknown airport", country_code="UN"),
+    destination=Airport(iata="DST", name="Unknown airport", country_code="UN"),
     stops=[],
 )
 ROUTE_HX = Flight(
+    callsign=FLIGHT_CALLSIGN,
     departure=Airport(
         iata="DEP",
         name="Valencia Airport",
@@ -51,9 +61,10 @@ ROUTE_HX = Flight(
         country_code="ES",
     ),
     stops=[],
-    airline=None,
+    airline="",
 )
 ROUTE_HX_WITH_STOP = Flight(
+    callsign=FLIGHT_CALLSIGN,
     departure=Airport(
         iata="DEP",
         name="Valencia Airport",
@@ -71,9 +82,10 @@ ROUTE_HX_WITH_STOP = Flight(
             country_code="KR",
         ),
     ],
-    airline=None,
+    airline="",
 )
 ROUTE_HX_AD = Flight(
+    callsign=FLIGHT_CALLSIGN,
     departure=Airport(
         iata="DEP",
         name="Jeju International Airport",
@@ -85,9 +97,10 @@ ROUTE_HX_AD = Flight(
         country_code="KR",
     ),
     stops=[],
-    airline=None,
+    airline="",
 )
 ROUTE_SB = Flight(
+    callsign=FLIGHT_CALLSIGN,
     departure=Airport(
         iata="CRK",
         name="Diosdado Macapagal International Airport",
@@ -102,6 +115,7 @@ ROUTE_SB = Flight(
     airline="Jin Air",
 )
 ROUTE_SB_WITH_STOP = Flight(
+    callsign=FLIGHT_CALLSIGN,
     departure=Airport(
         iata="SGN",
         name="Tan Son Nhat International Airport",
@@ -116,7 +130,7 @@ ROUTE_SB_WITH_STOP = Flight(
         Airport(
             iata="HKG",
             name="Hong Kong International Airport",
-            country_code="HK",
+            country_code="UN",
         )
     ],
     airline="United Airlines",
@@ -127,7 +141,7 @@ ROUTE_SB_WITH_STOP = Flight(
 @pytest.mark.parametrize("_callsign", ["", None])
 async def test_route_without_callsign(_callsign: str | None, async_client: httpx.AsyncClient):
     route = await FlightRoute.get_route(async_client, _callsign)
-    assert route == ROUTE_EMPTY
+    assert route == CALLSIGN_EMPTY
 
 
 @pytest.mark.asyncio

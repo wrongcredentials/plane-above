@@ -9,6 +9,9 @@ def __getattr__(name: str) -> Any:
     if name == "Plane":
         warnings.warn("'Plane' will be removed in v1.0.0, use 'Above'", DeprecationWarning, stacklevel=2)
         return Above
+    if name == "Route":
+        warnings.warn("'Route' will be removed in v1.0.0, use 'Flight'", DeprecationWarning, stacklevel=2)
+        return Flight
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 

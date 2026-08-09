@@ -75,7 +75,7 @@ class PlaneAbove:
                     country=f_object.country,
                     operator="",
                     age=0.0,
-                    photos=[Photo(image_url="", origin_url="", photographer="")],
+                    photos=[Photo()],
                 ),
                 Flight(
                     callsign=f_object.callsign,

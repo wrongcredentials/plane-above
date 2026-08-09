@@ -5,12 +5,10 @@ from dataclasses import dataclass
 import httpx
 
 from .locker import SourceLockedError, SourceUnavailableError
-from .logger import log
-
-TIMEOUT = httpx.Timeout(connect=2.0, read=4.0, write=2.0, pool=1.0)
+from ..logger import log
 
 
-@dataclass(slots=True)
+@dataclass(frozen=True, slots=True)
 class HttpResult:
     status_code: int
     data: str

@@ -88,7 +88,7 @@ class Above(NamedTuple):
         return cc.convert(names=self.aircraft.country, to="ISO2", not_found="UN")  # type: ignore[no-any-return]
 
     @property
-    def icao_24(self) -> str:
+    def icao24(self) -> str:
         warnings.warn("'icao24' will be removed in v1.0.0, use 'aircraft.icao24'", DeprecationWarning, stacklevel=2)
         return self.aircraft.icao24
 

@@ -1,7 +1,6 @@
 import asyncio
 from datetime import date, datetime
 from collections import ChainMap
-from dataclasses import dataclass
 from urllib.parse import urljoin
 
 import httpx
@@ -9,6 +8,7 @@ from lxml import html
 from dateutil.relativedelta import relativedelta
 
 from .utils import HttpResult, log, async_get
+from .models import Photo, Aircraft
 from .static import (
     AIRCRAFT_PHOTO_AD_SOURCE_URL,
     AIRCRAFT_PHOTO_AD_STATIC_URL,
@@ -18,22 +18,6 @@ from .static import (
     AIRCRAFT_DETAILS_HX_SOURCE_URL,
     AIRCRAFT_DETAILS_SB_SOURCE_URL,
 )
-
-
-@dataclass(frozen=True)
-class Aircraft:
-    registration: str
-    manufacturer: str
-    model: str
-    operator: str
-    age: float
-
-
-@dataclass(frozen=True)
-class Photo:
-    image_url: str
-    origin_url: str
-    photographer: str
 
 
 class AircraftDetails:
@@ -80,7 +64,14 @@ class AircraftDetails:
         return result.json_data.get("response", {}).get("aircraft", {})  # type: ignore[no-any-return]
 
     @classmethod
-    async def get_details(cls, _client: httpx.AsyncClient, icao24: str) -> tuple[Aircraft, Photo]:
+    async def get_details(
+        cls,
+        _client: httpx.AsyncClient,
+        icao24: str,
+        country: str,
+        ps_user_agent: str = "",
+        photo_search: str = "default",
+    ) -> Aircraft:
         results = await asyncio.gather(
             async_get(_client, AIRCRAFT_DETAILS_FD_SOURCE_URL, params=dict(modes=icao24)),
             async_get(_client, urljoin(AIRCRAFT_DETAILS_HX_SOURCE_URL, icao24)),
@@ -110,19 +101,37 @@ class AircraftDetails:
                 log.error(f" ✈ Cannot parse plane age for {icao24}: {year_built}.")
                 return 0.0
 
-        return (
-            Aircraft(
-                registration=pick_from(("Registration", "registration", "fd_registration")),
-                manufacturer=pick_from(("Manufacturer", "manufacturer", "fd_manufacturer")),
-                model=pick_from(("Type", "type", "fd_model", "icao_type", "ICAOTypeCode")),
-                operator=pick_from(("RegisteredOwners", "registered_owner", "fd_owner")),
-                age=get_age_from(data.get("fd_year_built")),
-            ),
-            Photo(
-                image_url=AircraftPhoto.parse_image_url_from_ad(pick_from(("fd_image_url", "url_photo_thumbnail"))),
-                origin_url=pick_from(("fd_origin_url", "")),  # FIXME url_photo returns broken url
-                photographer="",
-            ),
+        ac_details: dict[str, str] = dict(
+            registration=pick_from(("Registration", "registration", "fd_registration")),
+            manufacturer=pick_from(("Manufacturer", "manufacturer", "fd_manufacturer")),
+            model=pick_from(("Type", "type", "fd_model")),
+            type_code=pick_from(("ICAOTypeCode", "icao_type")),  # TODO: add from fd source
+            operator=pick_from(("RegisteredOwners", "registered_owner", "fd_owner")),
+        )
+        fd_photo = Photo(
+            image_url=AircraftPhoto.make_ad_image_url(data.get("fd_image_url")),
+            origin_url=data.get("fd_origin_url") or "",
+        )
+        sb_photo = Photo(
+            image_url=AircraftPhoto.make_ad_image_url(data.get("url_photo_thumbnail")),
+            origin_url="",  # FIXME sb source returns broken url in 'url_photo'
+        )
+
+        if fd_photo.has_urls:
+            photo = fd_photo
+        elif sb_photo.has_urls:
+            photo = sb_photo
+        elif photo_search != "default":
+            photo = Photo()
+        else:
+            photo = await AircraftPhoto.get_photo(_client, icao24, ac_details["registration"], ps_user_agent)
+
+        return Aircraft(
+            icao24=icao24,
+            age=get_age_from(data.get("fd_year_built")),
+            country=country,
+            photos=[photo],
+            **ac_details,
         )
 
 
@@ -131,7 +140,7 @@ class AircraftPhoto:
     async def _get_photo_from_hx(_client: httpx.AsyncClient, icao24: str) -> Photo | None:
         result = await async_get(_client, AIRCRAFT_PHOTO_HX_SOURCE_URL, params=dict(hex=icao24))
         if result.status_code != httpx.codes.NOT_FOUND and result.data:
-            return Photo(image_url=result.data, origin_url=result.data, photographer="")
+            return Photo(image_url=result.data, origin_url=result.data)
         return None
 
     @staticmethod
@@ -155,7 +164,7 @@ class AircraftPhoto:
         return None
 
     @staticmethod
-    def parse_image_url_from_ad(image_url: str) -> str:
+    def make_ad_image_url(image_url: str | None) -> str:
         if not image_url:
             return ""
 
@@ -168,7 +177,7 @@ class AircraftPhoto:
         if photos := result.json_data.get("data"):
             photo = photos[0]
             return Photo(
-                image_url=cls.parse_image_url_from_ad(photo.get("image")),
+                image_url=cls.make_ad_image_url(photo.get("image")),
                 origin_url=photo.get("link"),
                 photographer=photo.get("photographer"),
             )
@@ -179,8 +188,8 @@ class AircraftPhoto:
         cls,
         _client: httpx.AsyncClient,
         icao24: str,
-        registration: str = "",
-        ps_user_agent: str = "",
+        registration: str,
+        ps_user_agent: str,
     ) -> Photo:
 
         results = await asyncio.gather(

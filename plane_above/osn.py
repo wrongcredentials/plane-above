@@ -1,22 +1,12 @@
 import json
 import math
 from datetime import datetime, timedelta
-from dataclasses import dataclass
 
 import httpx
-import country_converter
 
 from .utils import log
+from .models import State, FlyingObject
 from .static import EARTH_RADIUS, OPENSKY_AUTH_URL, AIRCRAFT_IN_AREA_SOURCE_URL, DEFAULT_DISTANCE_FROM_POINT
-
-
-@dataclass(frozen=True)
-class FlyingObject:
-    icao24: str
-    callsign: str
-    country_code: str
-    velocity: int
-    altitude: int
 
 
 class OSNAuth:
@@ -113,14 +103,17 @@ class OSN:
 
     @staticmethod
     def _filter_objects(objects: list) -> tuple[list, int]:
-        cc = country_converter.CountryConverter()
         filtered = [
             FlyingObject(
                 icao24=state[0],
-                callsign=state[1].strip(),
-                country_code=cc.convert(names=state[2], to="ISO2", not_found="UN"),
-                velocity=round((state[9] or 0) * 3.6),
-                altitude=round(state[13] or 0),
+                callsign=state[1].strip() or "",
+                country=state[2].strip(),
+                state=State(
+                    velocity=round((state[9] or 0) * 3.6),
+                    altitude=round(state[13] or 0),
+                    latitude=state[6] or None,
+                    longitude=state[5] or None,
+                ),
             )
             for state in objects
             if state[2] and state[8] is False

@@ -1,46 +1,21 @@
 import asyncio
-from typing import NamedTuple
-from dataclasses import dataclass
-from collections.abc import Iterator, AsyncIterator
+from collections.abc import Generator, AsyncGenerator
 
 import httpx
 
-from .osn import OSN, FlyingObject
-from .route import Route, Airport, FlightRoute
-from .utils import log
+from .osn import OSN
+from .utils import PlaneAboveClient, log
+from .flight import FlightRoute
+from .models import Above, Photo, State, Flight, Airport, Spotted, Aircraft, FlyingObject
 from .static import DEFAULT_DISTANCE_FROM_POINT
-from .aircraft import Photo, Aircraft, AircraftPhoto, AircraftDetails
-
-
-@dataclass(frozen=True)
-class State:
-    altitude: int
-    velocity: int
-
-
-class Plane(NamedTuple):
-    icao24: str
-    callsign: str
-    country_code: str
-    aircraft: Aircraft
-    route: Route
-    state: State
-    photo: Photo
-
-
-class Spotted(NamedTuple):
-    objects_raw: list
-    objects_filtered: list[FlyingObject]
-    success: bool
-    how_many: int
-    errors: list
+from .aircraft import AircraftDetails
 
 
 class PlaneAbove:
     """Retrieving detailed information about flying objects above given point.
 
     Fetches aircraft details, flight routes, and photos for each spotted object,
-    combining data from multiple sources into structured `Plane` instances.
+    combining data from multiple sources into structured `Above` instances.
 
     Attributes:
         spotted (Spotted): Container with flying objects and additional info.
@@ -70,70 +45,75 @@ class PlaneAbove:
         self._ps_user_agent = ps_user_agent
         self.spotted = Spotted(*OSN.get_flying_objects(point, distance, osn_id, osn_secret, osn_proxy), errors=[])
 
-    async def _retrieve_data(self, f_object: FlyingObject) -> tuple[FlyingObject, Aircraft, Route, Photo]:
-        async with httpx.AsyncClient(timeout=httpx.Timeout(connect=2.0, read=4.0, write=2.0, pool=1.0)) as async_client:
-            try:
-                aircraft_details, route = await asyncio.gather(
-                    AircraftDetails.get_details(async_client, f_object.icao24),
-                    FlightRoute.get_route(async_client, f_object.callsign),
-                )
-                aircraft, photo = aircraft_details
-                if not all((photo.image_url, photo.origin_url)):
-                    photo = await AircraftPhoto.get_photo(
-                        async_client,
-                        f_object.icao24,
-                        aircraft.registration,
-                        self._ps_user_agent,
-                    )
-                return f_object, aircraft, route, photo
-
-            except Exception as exc:
-                log.error(f" ✈ Exception occurred for plane {f_object.icao24}: {exc}")
-                self.spotted.errors.append((f"{f_object.icao24=}", exc))
-                return (
-                    f_object,
-                    Aircraft(registration="", manufacturer="", model="", operator="", age=0.0),
-                    Route(departure=Airport(), destination=Airport(), stops=[]),
-                    Photo(image_url="", origin_url="", photographer=""),
-                )
-
-    @staticmethod
-    def _collect_data(f_object: FlyingObject, aircraft: Aircraft, route: Route, photo: Photo) -> Plane:
-        return Plane(
-            icao24=f_object.icao24,
-            callsign=f_object.callsign,
-            country_code=f_object.country_code,
-            aircraft=aircraft,
-            route=route,
-            state=State(velocity=f_object.velocity, altitude=f_object.altitude),
-            photo=photo,
-        )
-
-    def fetch(self) -> Iterator[Plane]:
-        """Retrieve detailed Plane data for all spotted flying objects.
-
-        Iterates over filtered flying objects, fetches data for each and yields populated Plane instances.
-
-        Yields:
-            Plane: Structured aircraft data for each spotted object.
-
-        Raises:
-            RuntimeError: If called from an existing async context.
-        """
+    async def _collect_data(
+        self,
+        client: httpx.AsyncClient,
+        f_object: FlyingObject,
+    ) -> tuple[Aircraft, Flight, State]:
         try:
-            for f_object in self.spotted.objects_filtered:
-                yield self._collect_data(*asyncio.run(self._retrieve_data(f_object)))
-        except RuntimeError as exc:
-            log.error(" ✈ For asynchronous environment use async_fetch method")
-            raise exc
+            aircraft, flight = await asyncio.gather(
+                AircraftDetails.get_details(
+                    client,
+                    f_object.icao24,
+                    f_object.country,
+                    self._ps_user_agent,
+                ),
+                FlightRoute.get_route(client, f_object.callsign),
+            )
+            return aircraft, flight, f_object.state
 
-    async def async_fetch(self) -> AsyncIterator[Plane]:
-        """Async retrieve detailed Plane data for all spotted flying objects.
+        except Exception as exc:
+            log.error(f" ✈ Exception occurred for plane {f_object.icao24}: {exc}")
+            self.spotted.errors.append((f"{f_object.icao24=}", exc))
+            return (
+                Aircraft(
+                    icao24=f_object.icao24,
+                    registration="",
+                    manufacturer="",
+                    model="",
+                    type_code="",
+                    country=f_object.country,
+                    operator="",
+                    age=0.0,
+                    photos=[Photo()],
+                ),
+                Flight(
+                    callsign=f_object.callsign,
+                    departure=Airport(),
+                    destination=Airport(),
+                    stops=[],
+                    airline="",
+                ),
+                f_object.state,
+            )
 
-        Iterates over filtered flying objects, fetches data for each and yields populated Plane instances.
+    def fetch(self) -> Generator[Above]:
+        """Retrieve detailed data for all spotted flying objects.
+
+        Iterates over filtered flying objects, fetches data for each and yields populated Above instances.
 
         Yields:
-            Plane: Structured aircraft data for each spotted object.
+            Above: Structured Aircraft, Flight and State data for each spotted object.
         """
-        for f_object in self.spotted.objects_filtered:
-            yield self._collect_data(*await self._retrieve_data(f_object))
+        planes_generator = self.async_fetch()
+        loop = asyncio.new_event_loop()
+        try:
+            while True:
+                yield loop.run_until_complete(planes_generator.__anext__())
+        except StopAsyncIteration:
+            pass
+        finally:
+            loop.run_until_complete(planes_generator.aclose())
+            loop.close()
+
+    async def async_fetch(self) -> AsyncGenerator[Above]:
+        """Asynchronously retrieve detailed data for all spotted flying objects.
+
+        Iterates over filtered flying objects, fetches data for each and yields populated Above instances.
+
+        Yields:
+            Above: Structured Aircraft, Flight and State data for each spotted object.
+        """
+        async with PlaneAboveClient() as client:
+            for f_object in self.spotted.objects_filtered:
+                yield Above(*await self._collect_data(client, f_object))

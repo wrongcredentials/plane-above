@@ -31,6 +31,11 @@ def async_client() -> httpx.AsyncClient:
 
 
 @pytest.fixture
+def ps_user_agent() -> str:
+    return "PA-PS/0.1 (+https://t.me/pa-ps)"
+
+
+@pytest.fixture
 def plane_above_mock(request, monkeypatch, coordinates) -> PlaneAbove:
     monkeypatch.setattr(
         "plane_above.osn.OSN._retrieve_objects_in_area",

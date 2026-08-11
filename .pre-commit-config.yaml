@@ -35,6 +35,11 @@ repos:
         language: system
         args: [--config-file=./pyproject.toml]
 
+  - repo: https://github.com/crate-ci/typos
+    rev: v1.49.0
+    hooks:
+      - id: typos
+
   - repo: https://github.com/compilerla/conventional-pre-commit
     rev: v4.4.0
     hooks:

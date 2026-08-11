@@ -3,13 +3,13 @@
 <p align="center"><i>What’s flying up there, huh?</i></p>
 
 ---
-🛩 Plane Above is a Python package featuring a convenient way to retrieve planes above a given point.
-
 [![PyPI version](https://img.shields.io/pypi/v/plane-above.svg)](https://pypi.org/project/plane-above/)
 [![Python versions](https://img.shields.io/pypi/pyversions/plane-above.svg)](https://pypi.org/project/plane-above/)
 [![License](https://img.shields.io/pypi/l/plane-above.svg)](https://pypi.org/project/plane-above/)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](https://mypy-lang.org/)
+
+🛩 Plane Above is a Python package featuring a convenient way to retrieve planes above a given point.
 
 <details>
   <summary>One notable usage example...</summary>
@@ -18,7 +18,8 @@
   <img src="https://raw.githubusercontent.com/wrongcredentials/plane-above/v0.1.1/tg.png" alt="tg-bot" width="400">
 </details>
 
-## Before we start...
+## Before we start
+
 To collect data, this project uses several publicly available third-party sources, including public APIs and
 enthusiast-maintained services. Please use them responsibly — don't push rate limits, and take care when using them so
 these sources remain available for everyone.
@@ -29,52 +30,72 @@ shared, or reused. Before doing anything beyond simple lookups, please review th
 (see [data sources](#data-sources) for details).
 
 ## How it works
+
 _Note: here and after I would refer to any flying object as an «aircraft» or «plane»,
 but keep in mind that it also includes helicopters, gliders, rotorcraft and even balloons._
+
 #### 1. BUILD SEARCHING AREA
+
 Using the given latitude and longitude, it builds a search area by calculating bounding box coordinates
 based on requested distance from the point.
+
 #### 2. RETRIEVE STATES
+
 Next, it makes a request to OpenSky API to retrieve states within the search area.
 Each state represents [state vector](https://openskynetwork.github.io/opensky-api/index.html#state-vectors)
 and contains information of ADS-B messages from transponder installed in aircraft.
+
 #### 3. PICK DATA
+
 After receiving the state vectors, provided that the request was successful, the rate limits were not exceeded,
 and at least one state was returned, it extracts the required fields and filters out irrelevant entries: for instance
 objects that are on ground will be discarded. At this point we already have some valuable data such as transponder
 hex code and flight callsign, along with reported altitude, velocity and coordinates.
+
 #### 4. FETCH DETAILS
+
 Based on previous step we enrich the data by making requests to multiple sources to retrieve information about aircraft
 like manufacturer, model, age (based on year of manufacture), photo and some others.
 At the same time it fetches flight route by sending multiple requests as well to receive information about departure,
 destination and for some cases midpoint airports.
+
 #### 5. COLLECT RESULT
+
 This is the last step where all data are being collected and returned in [declared format](#object-reference).
 
 ## Installation
+
 ```bash
 pip install plane-above
 ```
 
 ## Quickstart
+
 First, import library, create instance and pass your values of latitude & longitude as a tuple:
+
 ```pycon
 >>> from plane_above import PlaneAbove
 >>> pa = PlaneAbove((52.4573212, 5.5301535))
 ```
+
 Optionally, you can pass a distance attribute (_in km, 15 by default_):
+
 ```pycon
 >>> pa = PlaneAbove((52.4573212, 5.5301535), distance=20)
 ```
+
 At this point, we can check what is happening _above_:
+
 ```pycon
 >>> pa.spotted.success
 True
 >>> pa.spotted.how_many
 2
 ```
+
 In cases when there are no planes detected, or retrieving information fails you will get `True, 0` and `False, 0`
 respectively. Let's go further and see what are these _2 flying objects_:
+
 ```pycon
 >>> for above in pa.fetch():
 ...     print(
@@ -85,13 +106,16 @@ respectively. Let's go further and see what are these _2 flying objects_:
 Boeing 777 212ER flying to London Heathrow Airport is 11232 meters above you!
 Airbus A330 342 flying to Brussels Airport (Zaventem Airport) is 1006 meters above you!
 ```
+
 ⚠️ If you use asynchronous environment, call `async_fetch()` instead:
+
 ```text
 async for above in pa.async_fetch():
     ...
 ```
 
 ## Object Reference
+
 Both `fetch()` and `async_fetch()` methods will return an iterator consisting of `Above` objects.
 <details>
   <summary>Above</summary>
@@ -102,6 +126,7 @@ class Above:
     flight: Flight
     state: State
  ```
+
 </details>
 
 <details>
@@ -119,6 +144,7 @@ class Aircraft:
     type_code: str = ""  # ICAO type code.
     operator: str = ""
 ```
+
 </details>
 
 <details>
@@ -130,6 +156,7 @@ class Photo:
     origin_url: str = ""
     photographer: str = ""
  ```
+
 </details>
 
 <details>
@@ -143,6 +170,7 @@ class Flight:
     stops: list[Airport]  # Usually empty; only a small percentage of routes include stops.
     airline: str = ""  # Airline performing flight; May differ from aircraft.operator.
 ```
+
 </details>
 
 <details>
@@ -154,6 +182,7 @@ class Airport:
     name: str = "Unknown airport"  # May be "Unknown departure" or "Unknown destination" when no route is found.
     country_code: str = "UN"  # ISO2 code (NL, KR, BR...).
 ```
+
 </details>
 
 <details>
@@ -166,41 +195,54 @@ class State:
     latitude: float | None = None  # WGS-84 latitude in decimal degrees.
     longitude: float | None = None  # WGS-84 longitude in decimal degrees.
 ```
+
 </details>
 
 ## Limitations & Workarounds
+
 ### OpenSky Network Authentication
+
 OSN allows to use its API anonymously, but with limits.
 If you wish to extend your usage - consider obtaining ```client_id``` and  ```client_secret```
 [here](https://openskynetwork.github.io/opensky-api/rest.html#authentication). Then you pass extra params:
+
 ```python
 PlaneAbove((52.4573212, 5.5301535), osn_id="your_client_id", osn_secret="your_client_secret")
 ```
 
 ### OpenSky Network Timeouts
+
 In some cases your calls to OSN might be timed-out without any specific reason. That's due to their
 blocking policies and you probably would like to utilize proxy here as a workaround:
+
 ```python
 PlaneAbove((52.4573212, 5.5301535), osn_proxy="http://username:password@host:port")
 ```
+
 Please note that this will be used for making an OSN request only; other sources won't be called with that proxy.
 
 ### Planespotters.net additional requirement
+
 This photo source has a strict policy about making requests with
 [unique and descriptive user-agents](https://www.planespotters.net/photo/api). That's doable with an extra param:
+
 ```python
 PlaneAbove((52.4573212, 5.5301535), ps_user_agent="YourApp/1.0 (+https://example.com/contact)")
 ```
+
 However, you are free to skip it as it won't affect other photo sources.
 
 ## Data sources
+
 ### General terms
+
 This project aggregates data from multiple third-party services and does not claim ownership of any data returned
 by those services. The specific terms, restrictions, and licence conditions vary by source. Users must review and comply
 with the terms applicable to each source before storing, publishing, redistributing, exporting, or incorporating
 returned data into another database.
 
 ### Sources
+
 * Flying objects in area: [OpenSky Network](https://opensky-network.org/)
 * Aircraft data and photos; route and airport details:
   [hexdb.io](https://hexdb.io/)
@@ -212,6 +254,7 @@ returned data into another database.
 * Aircraft photos: [Planespotters.net](https://www.planespotters.net/)
 
 ### Route data notice
+
 > The flight route data is the work of David Taylor, Edinburgh and Jim Mason, Glasgow, and may not be copied,
 > published, or incorporated into other databases without the explicit permission of David J Taylor, Edinburgh.
 
@@ -220,6 +263,7 @@ here for transparency and attribution purposes only. It does not constitute perm
 is granted or implied by this project.
 
 ### Photo data notice
+
 This project does not intentionally download or persist image files. It may return photo metadata and image URLs
 provided by third-party photo sources. Image use is subject to the terms and attribution requirements of the
 respective source.

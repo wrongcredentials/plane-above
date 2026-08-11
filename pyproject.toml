@@ -117,3 +117,14 @@ no_implicit_optional = true
 check_untyped_defs = true
 warn_return_any = true
 strict_optional = true
+
+[tool.markdownlint-cli2]
+fix = true
+
+[tool.markdownlint-cli2.config]
+default = true
+MD001 = false
+MD013 = false
+MD024 = {siblings_only = true}
+MD033 = false
+MD059 = false

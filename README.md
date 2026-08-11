@@ -1,13 +1,15 @@
-<img src="https://raw.githubusercontent.com/wrongcredentials/plane-above/v0.1.1/logo.svg" alt="plane-above" width="170">
+<h1 align="center">Plane Above</h1>
+<p align="center"><img src="https://raw.githubusercontent.com/wrongcredentials/plane-above/v0.1.1/logo.svg" alt="plane-above" width="160"></p>
+<p align="center"><i>What’s flying up there, huh?</i></p>
 
-# Plane Above
+---
+🛩 Plane Above is a Python package featuring a convenient way to retrieve planes above a given point.
+
 [![PyPI version](https://img.shields.io/pypi/v/plane-above.svg)](https://pypi.org/project/plane-above/)
 [![Python versions](https://img.shields.io/pypi/pyversions/plane-above.svg)](https://pypi.org/project/plane-above/)
 [![License](https://img.shields.io/pypi/l/plane-above.svg)](https://pypi.org/project/plane-above/)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](https://mypy-lang.org/)
-
-🛩 Plane Above is a Python package featuring a convenient way to retrieve planes above a given point.
 
 <details>
   <summary>One notable usage example...</summary>

@@ -33,14 +33,14 @@ but keep in mind that it also includes helicopters, gliders, rotorcraft and even
 Using the given latitude and longitude, it builds a search area by calculating bounding box coordinates
 based on requested distance from the point.
 #### 2. RETRIEVE STATES
-Next, it makes a request to OpenSky API to retrieve state vectors within the search area.
+Next, it makes a request to OpenSky API to retrieve states within the search area.
 Each state represents [state vector](https://openskynetwork.github.io/opensky-api/index.html#state-vectors)
 and contains information of ADS-B messages from transponder installed in aircraft.
 #### 3. PICK DATA
 After receiving the state vectors, provided that the request was successful, the rate limits were not exceeded,
 and at least one state was returned, it extracts the required fields and filters out irrelevant entries: for instance
 objects that are on ground will be discarded. At this point we already have some valuable data such as transponder
-hex code and flight callsign, along with reported altitude and velocity.
+hex code and flight callsign, along with reported altitude, velocity and coordinates.
 #### 4. FETCH DETAILS
 Based on previous step we enrich the data by making requests to multiple sources to retrieve information about aircraft
 like manufacturer, model, age (based on year of manufacture), photo and some others.
@@ -60,7 +60,7 @@ First, import library, create instance and pass your values of latitude & longit
 >>> from plane_above import PlaneAbove
 >>> pa = PlaneAbove((52.4573212, 5.5301535))
 ```
-Optionally, you can pass a distance attribute (in km, 15 by default):
+Optionally, you can pass a distance attribute (_in km, 15 by default_):
 ```pycon
 >>> pa = PlaneAbove((52.4573212, 5.5301535), distance=20)
 ```
@@ -72,7 +72,7 @@ True
 2
 ```
 In cases when there are no planes detected, or retrieving information fails you will get `True, 0` and `False, 0`
-respectively. Let's go further and see what are these 2 flying objects:
+respectively. Let's go further and see what are these _2 flying objects_:
 ```pycon
 >>> for above in pa.fetch():
 ...     print(
@@ -159,7 +159,7 @@ class Airport:
 
 ```python
 class State:
-    altitude: int  # Geometric altitude in metres. Can be below zero.
+    altitude: int  # Geometric altitude in meters. Can be below zero.
     velocity: int  # Ground speed in m/s. Can be zero.
     latitude: float | None = None  # WGS-84 latitude in decimal degrees.
     longitude: float | None = None  # WGS-84 longitude in decimal degrees.

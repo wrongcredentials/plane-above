@@ -16,4 +16,4 @@ def __getattr__(name: str) -> Any:
 
 
 __all__ = ["Above", "Aircraft", "Airport", "Flight", "Photo", "PlaneAbove", "State"]
-__version__ = "0.2.0-rc"
+__version__ = "0.2.0"

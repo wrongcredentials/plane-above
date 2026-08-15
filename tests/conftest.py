@@ -25,7 +25,7 @@ def plane_above_mock(request, monkeypatch, ps_user_agent) -> PlaneAbove:
     )
     return PlaneAbove(
         COORDINATES,
-        route_sources={RouteSource.HX, RouteSource.SB},
-        photo_sources={PhotoSource.HX, PhotoSource.AD, PhotoSource.PS},
+        route_sources=(RouteSource.HX, RouteSource.SB),
+        photo_sources=(PhotoSource.HX, PhotoSource.AD, PhotoSource.PS),
         ps_user_agent=ps_user_agent,
     )

@@ -1,15 +1,24 @@
-<h1 align="center">Plane Above</h1>
+<h1></h1>
 <p align="center"><img src="https://raw.githubusercontent.com/wrongcredentials/plane-above/v0.1.1/logo.svg" alt="plane-above" width="160"></p>
+<h1 align="center">Plane Above</h1>
 <p align="center"><i>What’s flying up there, huh?</i></p>
 
----
-[![PyPI version](https://img.shields.io/pypi/v/plane-above.svg)](https://pypi.org/project/plane-above/)
-[![Python versions](https://img.shields.io/pypi/pyversions/plane-above.svg)](https://pypi.org/project/plane-above/)
-[![License](https://img.shields.io/pypi/l/plane-above.svg)](https://pypi.org/project/plane-above/)
-[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-[![mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](https://mypy-lang.org/)
+<div align="center">
 
-🛩 Plane Above is a Python package featuring a convenient way to retrieve planes above a given point.
+[![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://pypi.org/project/plane-above/)
+[![Pypi](https://img.shields.io/pypi/v/plane-above.svg)](https://pypi.org/project/plane-above/)
+[![License](https://img.shields.io/pypi/l/plane-above.svg)](https://github.com/wrongcredentials/plane-above/blob/main/LICENSE)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![Mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](https://mypy-lang.org/)
+
+</div>
+
+## About
+
+🛩 Plane Above is a Python package featuring a convenient way to retrieve _planes_ above a given point.
+> [!NOTE]
+> In this document I would refer to any flying object as an _«aircraft»_ or _«plane»_,
+> but keep in mind that it also includes helicopters, gliders, rotorcraft and even hot air balloons.
 
 <details>
   <summary>One notable usage example...</summary>
@@ -20,19 +29,16 @@
 
 ## Before we start
 
-To collect data, this project uses several publicly available third-party sources, including public APIs and
-enthusiast-maintained services. Please use them responsibly — don't push rate limits, and take care when using them so
+To collect data, this project uses several third-party sources, including public APIs and
+enthusiast-maintained services. Please use them responsibly: don't push rate limits, and take care when using them so
 these sources remain available for everyone.
 
 Keep in mind that returned data may be missing, incorrect, outdated, or temporarily unavailable. The project does not
 claim ownership of third-party data, and each source may have its own terms regarding how its data can be stored,
-shared, or reused. Before doing anything beyond simple lookups, please review the terms that apply to each source
-(see [data sources](#data-sources) for details).
+shared, or reused. Before doing anything beyond simple lookups for educational purposes, please review the terms
+that apply to each source (see [data sources](#data-sources) for details).
 
 ## How it works
-
-_Note: here and after I would refer to any flying object as an «aircraft» or «plane»,
-but keep in mind that it also includes helicopters, gliders, rotorcraft and even balloons._
 
 #### 1. BUILD SEARCHING AREA
 
@@ -107,12 +113,13 @@ Boeing 777 212ER flying to London Heathrow Airport is 11232 meters above you!
 Airbus A330 342 flying to Brussels Airport (Zaventem Airport) is 1006 meters above you!
 ```
 
-⚠️ If you use asynchronous environment, call `async_fetch()` instead:
-
-```text
-async for above in pa.async_fetch():
-    ...
-```
+> [!TIP]
+> If you use asynchronous environment, call `async_fetch()` instead:
+>
+>```text
+> async for above in pa.async_fetch():
+>    ...
+>```
 
 ## Object Reference
 
@@ -125,7 +132,7 @@ class Above:
     aircraft: Aircraft
     flight: Flight
     state: State
- ```
+```
 
 </details>
 
@@ -155,7 +162,7 @@ class Photo:
     image_url: str = ""
     origin_url: str = ""
     photographer: str = ""
- ```
+```
 
 </details>
 
@@ -200,10 +207,47 @@ class State:
 
 ## Limitations & Workarounds
 
+### Sources Setup
+
+By default, only sources without severe usage restrictions are queried, resulting in some data for `Route` and `Photo`
+being excluded. You can review and enable each source manually using `RouteSource` and `PhotoSource`:
+
+> [!WARNING]
+> By including a source, you confirm that you have read and agree to its terms
+> (see [sources](#sources) below for details).
+
+```python
+from plane_above import RouteSource, PhotoSource
+
+route_sources = (RouteSource.HX, RouteSource.SB)
+photo_sources = (PhotoSource.HX, PhotoSource.AD, PhotoSource.PS)
+
+PlaneAbove((52.4573212, 5.5301535), route_sources=route_sources, photo_sources=photo_sources)
+```
+
+You can skip direct calls to photo sources entirely for performance or liability reasons and still receive photos
+(if available) when requesting aircraft details:
+
+```python
+PlaneAbove((52.4573212, 5.5301535), photo_sources=())
+```
+
+### Planespotters.net Additional Requirement
+
+This photo source has a strict policy about making requests with
+[unique and descriptive user-agents](https://www.planespotters.net/photo/api). That's doable with an extra param:
+
+```python
+PlaneAbove((52.4573212, 5.5301535), ps_user_agent="YourApp/1.0 (+https://example.com/contact)")
+```
+
+Even if `PhotoSource.PS` is enabled in `photo_sources`, requests won't be processed without a valid `ps_user_agent`.
+Other photo sources are unaffected.
+
 ### OpenSky Network Authentication
 
 OSN allows to use its API anonymously, but with limits.
-If you wish to extend your usage - consider obtaining ```client_id``` and  ```client_secret```
+If you wish to extend your usage - consider obtaining `client_id` and  `client_secret`
 [here](https://openskynetwork.github.io/opensky-api/rest.html#authentication). Then you pass extra params:
 
 ```python
@@ -221,17 +265,6 @@ PlaneAbove((52.4573212, 5.5301535), osn_proxy="http://username:password@host:por
 
 Please note that this will be used for making an OSN request only; other sources won't be called with that proxy.
 
-### Planespotters.net additional requirement
-
-This photo source has a strict policy about making requests with
-[unique and descriptive user-agents](https://www.planespotters.net/photo/api). That's doable with an extra param:
-
-```python
-PlaneAbove((52.4573212, 5.5301535), ps_user_agent="YourApp/1.0 (+https://example.com/contact)")
-```
-
-However, you are free to skip it as it won't affect other photo sources.
-
 ## Data sources
 
 ### General terms
@@ -241,9 +274,14 @@ by those services. The specific terms, restrictions, and licence conditions vary
 with the terms applicable to each source before storing, publishing, redistributing, exporting, or incorporating
 returned data into another database.
 
+None of the sources we use guarantee the accuracy, timeliness, or completeness of their data, and use of each is at
+the user's own risk. This project is not affiliated with, endorsed by, or responsible for the content, availability,
+or practices of the third-party services it queries. Users must not use this project, or the sources it queries,
+unlawfully or in any way that could damage, disable, or impair the underlying services.
+
 ### Sources
 
-* Flying objects in area: [OpenSky Network](https://opensky-network.org/)
+* Flying objects in area: [opensky-network.org](https://opensky-network.org/)
 * Aircraft data and photos; route and airport details:
   [hexdb.io](https://hexdb.io/)
 * Aircraft data; route and airport details:
@@ -251,7 +289,7 @@ returned data into another database.
 * Aircraft photos; airport details:
   [airport-data.com](https://airport-data.com/)
 * Aircraft data: [flightdb.net](https://flightdb.net/)
-* Aircraft photos: [Planespotters.net](https://www.planespotters.net/)
+* Aircraft photos: [planespotters.net](https://www.planespotters.net/)
 
 ### Route data notice
 

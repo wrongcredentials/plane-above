@@ -1,7 +1,6 @@
 from plane_above.osn import OSN
 from plane_above.models import State, FlyingObject
-
-from .data.osn.flying_objects import (
+from tests.data.osn.flying_objects import (
     UNKNOWN,
     ON_GROUND,
     NO_COUNTRY,

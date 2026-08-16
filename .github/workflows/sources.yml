@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   healthcheck:
-    name: Run healthcheck
+    name: Sources check
     runs-on: ubuntu-latest
 
     steps:
@@ -28,7 +28,7 @@ jobs:
       - name: Install dependencies
         run: uv sync
 
-      - name: Run healthcheck
+      - name: Quick healthcheck
         env:
           PS_USER_AGENT: ${{ vars.PS_USER_AGENT }}
         run: uv run python scripts/healthcheck.py

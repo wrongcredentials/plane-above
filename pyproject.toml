@@ -107,7 +107,7 @@ source = ["plane_above"]
 omit = ["tests/*", "*/tests/*"]
 
 [tool.mypy]
-files = ["plane_above"]
+files = ["plane_above", "scripts"]
 python_version = "3.10"
 strict = true
 warn_unreachable = true

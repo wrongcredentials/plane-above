@@ -5,12 +5,14 @@
 
 <div align="center">
 
-[![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://pypi.org/project/plane-above/)
-[![Pypi](https://img.shields.io/pypi/v/plane-above.svg)](https://pypi.org/project/plane-above/)
-[![License](https://img.shields.io/pypi/l/plane-above.svg)](https://github.com/wrongcredentials/plane-above/blob/main/LICENSE)
-[![Healthcheck](https://github.com/wrongcredentials/plane-above/actions/workflows/sources.yml/badge.svg)](https://github.com/wrongcredentials/plane-above/actions/workflows/sources.yml)
-[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-[![Mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](https://mypy-lang.org/)
+[![python](https://img.shields.io/badge/python-3.10%2B-blue)](https://pypi.org/project/plane-above/)
+[![pypi](https://img.shields.io/pypi/v/plane-above.svg)](https://pypi.org/project/plane-above/)
+[![license](https://img.shields.io/pypi/l/plane-above.svg)](https://github.com/wrongcredentials/plane-above/blob/main/LICENSE)
+[![healthcheck](https://github.com/wrongcredentials/plane-above/actions/workflows/sources.yml/badge.svg)](https://github.com/wrongcredentials/plane-above/actions/workflows/sources.yml)
+[![tests](https://github.com/wrongcredentials/plane-above/actions/workflows/tests.yml/badge.svg)](https://github.com/wrongcredentials/plane-above/actions/workflows/tests.yml)
+[![codecov](https://codecov.io/github/wrongcredentials/plane-above/branch/main/graph/badge.svg)](https://codecov.io/github/wrongcredentials/plane-above)
+[![ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](https://mypy-lang.org/)
 
 </div>
 

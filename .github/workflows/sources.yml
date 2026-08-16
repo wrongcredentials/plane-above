@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   healthcheck:
-    name: Sources check
+    name: sources check
     runs-on: ubuntu-latest
 
     steps:

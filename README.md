@@ -296,9 +296,9 @@ unlawfully or in any way that could damage, disable, or impair the underlying se
 > The flight route data is the work of David Taylor, Edinburgh and Jim Mason, Glasgow, and may not be copied,
 > published, or incorporated into other databases without the explicit permission of David J Taylor, Edinburgh.
 
-This notice applies specifically to flight route data obtained via [adsbdb](https://www.adsbdb.com/), and is reproduced
-here for transparency and attribution purposes only. It does not constitute permission, and no such permission
-is granted or implied by this project.
+This notice applies specifically to flight route data obtained via [adsbdb](https://www.adsbdb.com/) (_excluded by default and requires
+manual enabling_), and is reproduced here for transparency and attribution purposes only. It does not constitute
+permission, and no such permission is granted or implied by this project.
 
 ### Photo data notice
 

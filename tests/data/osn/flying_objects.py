@@ -1,3 +1,5 @@
+from tests.data import AIRCRAFT_ICAO, FLIGHT_CALLSIGN, AIRCRAFT_COUNTRY
+
 ZERO_ALTITUDE = [
     [
         "505cbb",
@@ -155,4 +157,26 @@ NO_CALLSIGN = [
         3,
         0,
     ]
+]
+
+ABOVE_FETCH = [
+    [
+        AIRCRAFT_ICAO,
+        FLIGHT_CALLSIGN,
+        AIRCRAFT_COUNTRY,
+        1686301664,
+        1686301665,
+        5.2843,
+        51.5724,
+        304.8,
+        False,
+        48.42,
+        345.23,
+        0.33,
+        None,
+        365.76,
+        None,
+        False,
+        0,
+    ],
 ]

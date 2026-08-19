@@ -43,7 +43,7 @@ def test_sync_fetch(plane_above_mock, httpx_mock: HTTPXMock):
         assert above.aircraft.model == "737-8 MAX"
         assert above.aircraft.type_code == "B788"
         assert len(above.aircraft.photos) == 1
-        assert above.aircraft.photos[0].has_urls is True
+        assert above.aircraft.photos[0]._has_urls is True
         assert above.aircraft.photos[0].image_url == "https://image.airport-data.com/aircraft/001868532.jpg"
         assert above.aircraft.photos[0].origin_url == "https://airport-data.com/aircraft/photo/001868532"
         assert above.aircraft.photos[0].photographer == ""
@@ -104,7 +104,7 @@ async def test_async_fetch(plane_above_mock, httpx_mock: HTTPXMock):
         assert above.aircraft.model == "737-8 MAX"
         assert above.aircraft.type_code == "B788"
         assert above.aircraft.operator == "Qatar Airways"
-        assert above.photo.has_urls is True
+        assert above.photo._has_urls is True
         assert above.photo.image_url == "https://hexdb.io/static/aircraft-images/PH-BXC.jpg"
         assert above.photo.origin_url == "https://hexdb.io/static/aircraft-images/PH-BXC.jpg"
         assert above.photo.photographer == ""

@@ -119,9 +119,9 @@ class AircraftDetails:
             origin_url="",  # FIXME sb source returns broken url in 'url_photo'
         )
 
-        if fd_photo.has_urls:
+        if fd_photo._has_urls:
             photos = [fd_photo]
-        elif sb_photo.has_urls:
+        elif sb_photo._has_urls:
             photos = [sb_photo]
         elif not sources:
             photos = [Photo()]
@@ -147,7 +147,7 @@ class AircraftPhoto:
 
     @staticmethod
     async def _get_photo_from_ps(_client: httpx.AsyncClient, by: str, item: str, user_agent: str) -> Photo | None:
-        if not user_agent:
+        if not user_agent:  # pragma: no cover
             log.warning(" ✈ No User-Agent detected; Planespotters.net requires a unique and descriptive value")
             return None
 
@@ -205,5 +205,7 @@ class AircraftPhoto:
         }
 
         results = await asyncio.gather(*[task() for source in sources for task in tasks.get(source, [])])
-        photos: dict[str, Photo] = {photo.image_url: photo for photo in results if photo is not None and photo.has_urls}
+        photos: dict[str, Photo] = {
+            photo.image_url: photo for photo in results if photo is not None and photo._has_urls
+        }
         return list(photos.values()) or [Photo()]

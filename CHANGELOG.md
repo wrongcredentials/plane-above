@@ -34,7 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Deprecated
 
 > [!IMPORTANT]
-> Deprecated attributes emit `DeprecationWarning` and will be removed in **v1.0.0**.
+> Deprecated entities emit `DeprecationWarning` and will be removed in **v1.0.0**.
 
 - `Plane` and `Route` models
 - `.route`, `.callsign`, `.country_code`, `.icao24` and `.photo` attributes

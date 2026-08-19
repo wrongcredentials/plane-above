@@ -12,7 +12,7 @@ class Photo:
     photographer: str = ""
 
     @property
-    def has_urls(self) -> bool:
+    def _has_urls(self) -> bool:
         return bool(self.image_url and self.origin_url)
 
 

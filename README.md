@@ -84,13 +84,13 @@ First, import library, create instance and pass your values of latitude & longit
 
 ```pycon
 >>> from plane_above import PlaneAbove
->>> pa = PlaneAbove((52.4573212, 5.5301535))
+>>> pa = PlaneAbove((52.457, 5.531))
 ```
 
 Optionally, you can pass a distance attribute (_in km, 15 by default_):
 
 ```pycon
->>> pa = PlaneAbove((52.4573212, 5.5301535), distance=20)
+>>> pa = PlaneAbove((52.457, 5.531), distance=20)
 ```
 
 At this point, we can check what is happening _above_:
@@ -222,17 +222,24 @@ being excluded. You can review and enable each source manually using `RouteSourc
 ```python
 from plane_above import RouteSource, PhotoSource
 
-route_sources = (RouteSource.HX, RouteSource.SB)
-photo_sources = (PhotoSource.HX, PhotoSource.AD, PhotoSource.PS)
+route_sources = (
+  RouteSource.HX,  # https://hexdb.io/
+  RouteSource.SB,  # https://www.adsbdb.com/
+)
+photo_sources = (
+  PhotoSource.HX,  # https://hexdb.io/
+  PhotoSource.AD,  # https://airport-data.com/terms
+  PhotoSource.PS,  # https://www.planespotters.net/photo/api#terms
+)
 
-PlaneAbove((52.4573212, 5.5301535), route_sources=route_sources, photo_sources=photo_sources)
+PlaneAbove((52.457, 5.531), route_sources=route_sources, photo_sources=photo_sources)
 ```
 
-You can skip direct calls to photo sources entirely for performance or liability reasons and still receive photos
-(if available) when requesting aircraft details:
+You can skip direct calls to photo sources entirely for performance or liability reasons and still receive photo
+when requesting aircraft details (_if available in default provider_):
 
 ```python
-PlaneAbove((52.4573212, 5.5301535), photo_sources=())
+PlaneAbove((52.457, 5.531), photo_sources=())
 ```
 
 ### Planespotters.net Additional Requirement
@@ -241,7 +248,7 @@ This photo source has a strict policy about making requests with
 [unique and descriptive user-agents](https://www.planespotters.net/photo/api). That's doable with an extra param:
 
 ```python
-PlaneAbove((52.4573212, 5.5301535), ps_user_agent="YourApp/1.0 (+https://example.com/contact)")
+PlaneAbove((52.457, 5.531), ps_user_agent="YourApp/1.0 (+https://example.com/contact)")
 ```
 
 Even if `PhotoSource.PS` is enabled in `photo_sources`, requests won't be processed without a valid `ps_user_agent`.
@@ -254,7 +261,7 @@ If you wish to extend your usage - consider obtaining `client_id` and  `client_s
 [here](https://openskynetwork.github.io/opensky-api/rest.html#authentication). Then you pass extra params:
 
 ```python
-PlaneAbove((52.4573212, 5.5301535), osn_id="your_client_id", osn_secret="your_client_secret")
+PlaneAbove((52.457, 5.531), osn_id="your_client_id", osn_secret="your_client_secret")
 ```
 
 ### OpenSky Network Timeouts
@@ -263,7 +270,7 @@ In some cases your calls to OSN might be timed-out without any specific reason. 
 blocking policies and you probably would like to utilize proxy here as a workaround:
 
 ```python
-PlaneAbove((52.4573212, 5.5301535), osn_proxy="http://username:password@host:port")
+PlaneAbove((52.457, 5.531), osn_proxy="http://username:password@host:port")
 ```
 
 Please note that this will be used for making an OSN request only; other sources won't be called with that proxy.
@@ -300,7 +307,7 @@ unlawfully or in any way that could damage, disable, or impair the underlying se
 > published, or incorporated into other databases without the explicit permission of David J Taylor, Edinburgh.
 
 This notice applies specifically to flight route data obtained via [adsbdb](https://www.adsbdb.com/) (_excluded by default and requires
-manual enabling_), and is reproduced here for transparency and attribution purposes only. It does not constitute
+[manual enabling](#sources-setup) as `RouteSources.SB`_), and is reproduced here for transparency and attribution purposes only. It does not constitute
 permission, and no such permission is granted or implied by this project.
 
 ### Photo data notice

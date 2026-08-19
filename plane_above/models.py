@@ -75,12 +75,12 @@ class Above(NamedTuple):
     state: State
 
     @property
-    def route(self) -> Flight:
+    def route(self) -> Flight:  # pragma: no cover
         warnings.warn("'route' will be removed in v1.0.0, use 'flight'", DeprecationWarning, stacklevel=2)
         return self.flight
 
     @property
-    def country_code(self) -> str:
+    def country_code(self) -> str:  # pragma: no cover
         warnings.warn(
             "'country_code' will be removed in v1.0.0, use 'aircraft.country'", DeprecationWarning, stacklevel=2
         )
@@ -88,16 +88,16 @@ class Above(NamedTuple):
         return cc.convert(names=self.aircraft.country, to="ISO2", not_found="UN")  # type: ignore[no-any-return]
 
     @property
-    def icao24(self) -> str:
+    def icao24(self) -> str:  # pragma: no cover
         warnings.warn("'icao24' will be removed in v1.0.0, use 'aircraft.icao24'", DeprecationWarning, stacklevel=2)
         return self.aircraft.icao24
 
     @property
-    def photo(self) -> Photo:
+    def photo(self) -> Photo:  # pragma: no cover
         warnings.warn("'photo' will be removed in v1.0.0, use 'aircraft.photos'", DeprecationWarning, stacklevel=2)
         return self.aircraft.photos[0]
 
     @property
-    def callsign(self) -> str:
+    def callsign(self) -> str:  # pragma: no cover
         warnings.warn("'callsign' will be removed in v1.0.0, use 'flight.callsign'", DeprecationWarning, stacklevel=2)
         return self.flight.callsign

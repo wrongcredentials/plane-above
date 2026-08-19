@@ -1,5 +1,6 @@
 import asyncio
 from urllib.parse import urljoin
+from collections.abc import Collection
 
 import httpx
 
@@ -10,6 +11,7 @@ from .static import (
     ROUTE_DETAILS_SB_SOURCE_URL,
     AIRPORT_DETAILS_AD_SOURCE_URL,
     AIRPORT_DETAILS_HX_SOURCE_URL,
+    RouteSource,
 )
 
 
@@ -81,12 +83,12 @@ class FlightRoute:
         )
 
     @classmethod
-    async def get_route(cls, _client: httpx.AsyncClient, callsign: str) -> Flight:
+    async def get_route(cls, _client: httpx.AsyncClient, callsign: str, sources: Collection[RouteSource]) -> Flight:
         if callsign:
-            if route := await cls._get_route_from_hx(_client, callsign):
+            if RouteSource.HX in sources and (route := await cls._get_route_from_hx(_client, callsign)):
                 return route
 
-            if route := await cls._get_route_from_sb(_client, callsign):
+            if RouteSource.SB in sources and (route := await cls._get_route_from_sb(_client, callsign)):
                 return route
 
         return Flight(

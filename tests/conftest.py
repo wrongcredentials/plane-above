@@ -1,28 +1,10 @@
+import os
+
 import httpx
 import pytest
 
-from tests import AIRCRAFT_REG, AIRCRAFT_ICAO, FLIGHT_CALLSIGN
-from plane_above import PlaneAbove
-
-
-@pytest.fixture
-def coordinates() -> tuple[float, float]:
-    return 52.093454, 5.118284
-
-
-@pytest.fixture
-def aircraft_icao() -> str:
-    return AIRCRAFT_ICAO
-
-
-@pytest.fixture
-def aircraft_registration() -> str:
-    return AIRCRAFT_REG
-
-
-@pytest.fixture
-def flight_callsign() -> str:
-    return FLIGHT_CALLSIGN
+from tests.data import COORDINATES
+from plane_above import PlaneAbove, PhotoSource, RouteSource
 
 
 @pytest.fixture
@@ -32,13 +14,18 @@ def async_client() -> httpx.AsyncClient:
 
 @pytest.fixture
 def ps_user_agent() -> str:
-    return "PA-PS/0.1 (+https://t.me/pa-ps)"
+    return os.environ["PS_USER_AGENT"]
 
 
 @pytest.fixture
-def plane_above_mock(request, monkeypatch, coordinates) -> PlaneAbove:
+def plane_above_mock(request, monkeypatch, ps_user_agent) -> PlaneAbove:
     monkeypatch.setattr(
         "plane_above.osn.OSN._retrieve_objects_in_area",
         lambda area, auth_token, proxy: (request.param, True),
     )
-    return PlaneAbove(coordinates, ps_user_agent="PA-PS/0.1 (+https://t.me/pa-ps)")
+    return PlaneAbove(
+        COORDINATES,
+        route_sources=(RouteSource.HX,),
+        photo_sources=(PhotoSource.HX,),
+        ps_user_agent=ps_user_agent,
+    )

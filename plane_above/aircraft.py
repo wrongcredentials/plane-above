@@ -2,6 +2,7 @@ import asyncio
 from datetime import date, datetime
 from collections import ChainMap
 from urllib.parse import urljoin
+from collections.abc import Collection
 
 import httpx
 from lxml import html
@@ -17,6 +18,7 @@ from .static import (
     AIRCRAFT_DETAILS_FD_SOURCE_URL,
     AIRCRAFT_DETAILS_HX_SOURCE_URL,
     AIRCRAFT_DETAILS_SB_SOURCE_URL,
+    PhotoSource,
 )
 
 
@@ -69,8 +71,8 @@ class AircraftDetails:
         _client: httpx.AsyncClient,
         icao24: str,
         country: str,
+        sources: Collection[PhotoSource],
         ps_user_agent: str = "",
-        photo_search: str = "default",
     ) -> Aircraft:
         results = await asyncio.gather(
             async_get(_client, AIRCRAFT_DETAILS_FD_SOURCE_URL, params=dict(modes=icao24)),
@@ -118,19 +120,19 @@ class AircraftDetails:
         )
 
         if fd_photo.has_urls:
-            photo = fd_photo
+            photos = [fd_photo]
         elif sb_photo.has_urls:
-            photo = sb_photo
-        elif photo_search != "default":
-            photo = Photo()
+            photos = [sb_photo]
+        elif not sources:
+            photos = [Photo()]
         else:
-            photo = await AircraftPhoto.get_photo(_client, icao24, ac_details["registration"], ps_user_agent)
+            photos = await AircraftPhoto.get_photos(_client, icao24, ac_details["registration"], sources, ps_user_agent)
 
         return Aircraft(
             icao24=icao24,
             age=get_age_from(data.get("fd_year_built")),
             country=country,
-            photos=[photo],
+            photos=photos,
             **ac_details,
         )
 
@@ -147,6 +149,7 @@ class AircraftPhoto:
     async def _get_photo_from_ps(_client: httpx.AsyncClient, by: str, item: str, user_agent: str) -> Photo | None:
         if not user_agent:
             log.warning(" ✈ No User-Agent detected; Planespotters.net requires a unique and descriptive value")
+            return None
 
         result = await async_get(
             _client,
@@ -184,21 +187,23 @@ class AircraftPhoto:
         return None
 
     @classmethod
-    async def get_photo(
+    async def get_photos(
         cls,
         _client: httpx.AsyncClient,
         icao24: str,
         registration: str,
+        sources: Collection[PhotoSource],
         ps_user_agent: str,
-    ) -> Photo:
+    ) -> list[Photo]:
+        tasks: dict[PhotoSource, list] = {
+            PhotoSource.HX: [lambda: cls._get_photo_from_hx(_client, icao24)],
+            PhotoSource.AD: [lambda: cls._get_photo_from_ad(_client, icao24, registration)],
+            PhotoSource.PS: [
+                lambda: cls._get_photo_from_ps(_client, "hex", icao24, ps_user_agent),
+                lambda: cls._get_photo_from_ps(_client, "reg", registration, ps_user_agent),
+            ],
+        }
 
-        results = await asyncio.gather(
-            cls._get_photo_from_hx(_client, icao24),
-            cls._get_photo_from_ad(_client, icao24, registration),
-            cls._get_photo_from_ps(_client, "hex", icao24, ps_user_agent),
-            cls._get_photo_from_ps(_client, "reg", registration, ps_user_agent),
-        )
-        return next(
-            (item for item in results if item is not None),
-            Photo(image_url="", origin_url="", photographer=""),
-        )
+        results = await asyncio.gather(*[task() for source in sources for task in tasks.get(source, [])])
+        photos: dict[str, Photo] = {photo.image_url: photo for photo in results if photo is not None and photo.has_urls}
+        return list(photos.values()) or [Photo()]

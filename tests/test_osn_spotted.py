@@ -1,14 +1,15 @@
 import pytest_httpx
 
-from tests import OSN_STATES_RESP_200, OSN_STATES_RESP_404, OSN_STATES_RESP_502
+from tests import OSNMocks
+from tests.data import COORDINATES
 from plane_above import PlaneAbove
 from plane_above.models import State, FlyingObject
 
 
-def test_retrieve_ok(httpx_mock: pytest_httpx.HTTPXMock, coordinates: tuple[float, float]):
-    httpx_mock.add_response(**OSN_STATES_RESP_200)
-    plane_above = PlaneAbove(coordinates)
-    assert plane_above.spotted.objects_raw == OSN_STATES_RESP_200["json"]["states"]
+def test_retrieve_ok(httpx_mock: pytest_httpx.HTTPXMock):
+    httpx_mock.add_response(**OSNMocks.OSN_STATES_RESP_200)
+    plane_above = PlaneAbove(COORDINATES)
+    assert plane_above.spotted.objects_raw == OSNMocks.OSN_STATES_RESP_200["json"]["states"]
     assert plane_above.spotted.objects_filtered == [
         FlyingObject(
             icao24="8960b4",
@@ -27,9 +28,9 @@ def test_retrieve_ok(httpx_mock: pytest_httpx.HTTPXMock, coordinates: tuple[floa
     assert plane_above.spotted.how_many == 1
 
 
-def test_retrieve_no_planes(httpx_mock: pytest_httpx.HTTPXMock, coordinates: tuple[float, float]):
-    httpx_mock.add_response(**OSN_STATES_RESP_404)
-    plane_above = PlaneAbove(coordinates)
+def test_retrieve_no_planes(httpx_mock: pytest_httpx.HTTPXMock):
+    httpx_mock.add_response(**OSNMocks.OSN_STATES_RESP_404)
+    plane_above = PlaneAbove(COORDINATES)
     assert plane_above.spotted.objects_raw == []
     assert plane_above.spotted.objects_filtered == []
     assert plane_above.spotted.errors == []
@@ -38,9 +39,9 @@ def test_retrieve_no_planes(httpx_mock: pytest_httpx.HTTPXMock, coordinates: tup
     assert list(plane_above.fetch()) == []
 
 
-def test_retrieve_unavailable(httpx_mock: pytest_httpx.HTTPXMock, coordinates: tuple[float, float]):
-    httpx_mock.add_response(**OSN_STATES_RESP_502)
-    plane_above = PlaneAbove(coordinates)
+def test_retrieve_unavailable(httpx_mock: pytest_httpx.HTTPXMock):
+    httpx_mock.add_response(**OSNMocks.OSN_STATES_RESP_502)
+    plane_above = PlaneAbove(COORDINATES)
     assert plane_above.spotted.objects_raw == []
     assert plane_above.spotted.objects_filtered == []
     assert plane_above.spotted.errors == []
@@ -49,9 +50,9 @@ def test_retrieve_unavailable(httpx_mock: pytest_httpx.HTTPXMock, coordinates: t
     assert list(plane_above.fetch()) == []
 
 
-def test_retrieve_wrong_content_type(httpx_mock: pytest_httpx.HTTPXMock, coordinates: tuple[float, float]):
+def test_retrieve_wrong_content_type(httpx_mock: pytest_httpx.HTTPXMock):
     httpx_mock.add_response(content=b"<!doctype html>")
-    plane_above = PlaneAbove(coordinates)
+    plane_above = PlaneAbove(COORDINATES)
     assert plane_above.spotted.objects_raw == []
     assert plane_above.spotted.objects_filtered == []
     assert plane_above.spotted.errors == []

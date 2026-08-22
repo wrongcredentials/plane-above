@@ -6,7 +6,13 @@ import httpx
 
 from .utils import log
 from .models import State, FlyingObject
-from .static import EARTH_RADIUS, OPENSKY_AUTH_URL, AIRCRAFT_IN_AREA_SOURCE_URL, DEFAULT_DISTANCE_FROM_POINT
+from .static import (
+    EARTH_RADIUS,
+    OPENSKY_AUTH_URL,
+    AIRCRAFT_IN_AREA_SOURCE_URL,
+    DEFAULT_DISTANCE_FROM_POINT,
+    OSNStateVectorType,
+)
 
 
 class OSNAuth:
@@ -83,10 +89,10 @@ class OSN:
 
     @staticmethod
     def _retrieve_objects_in_area(
-        area: dict,
+        area: dict[str, float],
         auth_token: str | None = "",
         proxy: str | None = "",
-    ) -> tuple[list, bool]:
+    ) -> tuple[list[OSNStateVectorType], bool]:
         try:
             r = httpx.get(
                 AIRCRAFT_IN_AREA_SOURCE_URL,
@@ -104,11 +110,11 @@ class OSN:
             return [], False
 
     @staticmethod
-    def _filter_objects(objects: list) -> tuple[list, int]:
+    def _filter_objects(objects: list[OSNStateVectorType]) -> tuple[list[FlyingObject], int]:
         filtered = [
             FlyingObject(
                 icao24=state[0],
-                callsign=state[1].strip() or "",
+                callsign=(state[1] or "").strip(),
                 country=state[2].strip(),
                 state=State(
                     velocity=round((state[9] or 0) * 3.6),
@@ -132,7 +138,7 @@ class OSN:
         osn_id: str,
         osn_secret: str,
         osn_proxy: str | None = None,
-    ) -> tuple[list, list, bool, int]:
+    ) -> tuple[list[OSNStateVectorType], list[FlyingObject], bool, int]:
 
         area = cls._get_bounding_box(*cls._validate_coordinates(*point), distance)
         auth = OSNAuth(osn_id, osn_secret, osn_proxy).get_token() if all((osn_id, osn_secret)) else ""

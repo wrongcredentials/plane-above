@@ -1,8 +1,9 @@
 import asyncio
 import datetime
+from typing import Any
 from collections import ChainMap
 from urllib.parse import urljoin
-from collections.abc import Collection
+from collections.abc import Callable, Coroutine, Collection
 
 import httpx
 from lxml import html
@@ -24,7 +25,7 @@ from .static import (
 
 class AircraftDetails:
     @staticmethod
-    def _parse_fd_source(html_text: str) -> dict:
+    def _parse_fd_source(html_text: str) -> dict[str, str | None]:
         if not html_text:
             return {}
         tree = html.fromstring(html_text)
@@ -59,7 +60,7 @@ class AircraftDetails:
         }
 
     @staticmethod
-    def _parse_sb_source(result: HttpResult) -> dict:
+    def _parse_sb_source(result: HttpResult) -> dict[str, str | None]:
         if result.status_code == httpx.codes.NOT_FOUND or not result.json_data:
             return {}
 
@@ -87,7 +88,7 @@ class AircraftDetails:
             )
         )
 
-        def pick_from(fields: tuple) -> str:
+        def pick_from(fields: tuple[str, str, str]) -> str:
             return values[0] if (values := [v for f in fields if (v := data.get(f))]) else ""
 
         def get_age_from(year_built: str | None) -> float:
@@ -110,7 +111,7 @@ class AircraftDetails:
             registration=pick_from(("Registration", "registration", "fd_registration")),
             manufacturer=pick_from(("Manufacturer", "manufacturer", "fd_manufacturer")),
             model=pick_from(("Type", "type", "fd_model")),
-            type_code=pick_from(("ICAOTypeCode", "icao_type")),  # TODO: add from fd source
+            type_code=pick_from(("ICAOTypeCode", "icao_type", "")),  # TODO: add from fd source
             operator=pick_from(("RegisteredOwners", "registered_owner", "fd_owner")),
         )
         fd_photo = Photo(
@@ -198,7 +199,7 @@ class AircraftPhoto:
         sources: Collection[PhotoSource],
         ps_user_agent: str,
     ) -> list[Photo]:
-        tasks: dict[PhotoSource, list] = {
+        tasks: dict[PhotoSource, list[Callable[[], Coroutine[Any, Any, Photo | None]]]] = {
             PhotoSource.HX: [lambda: cls._get_photo_from_hx(_client, icao24)],
             PhotoSource.AD: [lambda: cls._get_photo_from_ad(_client, icao24, registration)],
             PhotoSource.PS: [

@@ -12,8 +12,8 @@ from ..logger import log
 class HttpResult:
     status_code: int
     data: str
-    json_data: dict
-    headers: dict
+    json_data: dict[str, Any]
+    headers: dict[Any, Any]
 
 
 async def async_get(async_client: httpx.AsyncClient, *args: Any, **kwargs: Any) -> HttpResult:
@@ -36,8 +36,8 @@ async def async_get(async_client: httpx.AsyncClient, *args: Any, **kwargs: Any) 
         log.error(f" ✈ Exception occurred with parsing json: {exc}")
         return HttpResult(httpx.codes.INTERNAL_SERVER_ERROR, "", {}, {})
 
-    except httpx.HTTPStatusError:
-        return HttpResult(r.status_code, "", {}, dict(r.headers))
+    except httpx.HTTPStatusError as exc:
+        return HttpResult(exc.response.status_code, "", {}, dict(exc.response.headers))
 
     except httpx.HTTPError as exc:
         log.error(f" ✈ Exception occurred with request: {exc}")

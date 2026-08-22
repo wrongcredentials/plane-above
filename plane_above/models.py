@@ -4,6 +4,8 @@ from dataclasses import dataclass
 
 import country_converter
 
+from .static import OSNStateVectorType
+
 
 @dataclass(frozen=True)
 class Photo:
@@ -62,11 +64,11 @@ class FlyingObject:
 
 
 class Spotted(NamedTuple):
-    objects_raw: list
+    objects_raw: list[OSNStateVectorType]
     objects_filtered: list[FlyingObject]
     success: bool
     how_many: int
-    errors: list
+    errors: list[tuple[str, str]]
 
 
 class Above(NamedTuple):

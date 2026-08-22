@@ -19,7 +19,9 @@ class FlightRoute:
     @staticmethod
     async def _get_airport_details(_client: httpx.AsyncClient, iata: str) -> Airport:
         result = await async_get(_client, urljoin(AIRPORT_DETAILS_HX_SOURCE_URL, iata))
-        if (name := result.json_data.get("airport")) and (country_code := result.json_data.get("country_code")):
+        name = result.json_data.get("airport") or ""
+        country_code = result.json_data.get("country_code") or ""
+        if name and country_code:
             return Airport(iata=iata, name=name, country_code=country_code)
 
         result = await async_get(_client, AIRPORT_DETAILS_AD_SOURCE_URL, params=dict(iata=iata))

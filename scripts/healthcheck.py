@@ -16,14 +16,16 @@ from plane_above.static.sources import (
 
 log = logging.getLogger(__name__)
 
+AIRCRAFT_ICAO = "06A07A"
+AIRPORT_IATA = "ICN"
 SOURCES: dict[str, Callable[[httpx.Client], httpx.Response]] = {
     "opensky-network.org": lambda c: c.get(urljoin(OPENSKY_API_BASE_URL, "states/all")),
-    "hexdb.io": lambda c: c.get(urljoin(AIRPORT_DETAILS_HX_SOURCE_URL, "ICN")),
+    "hexdb.io": lambda c: c.get(urljoin(AIRPORT_DETAILS_HX_SOURCE_URL, AIRPORT_IATA)),
     "adsbdb.com": lambda c: c.get(urljoin(ADSB_DB_API_BASE_URL, "online")),
-    "airport-data.com": lambda c: c.get(AIRPORT_DETAILS_AD_SOURCE_URL, params={"iata": "ICN"}),
-    "flightdb.net": lambda client: client.get(AIRCRAFT_DETAILS_FD_SOURCE_URL, params={"modes": "06A07A"}),
+    "airport-data.com": lambda c: c.get(AIRPORT_DETAILS_AD_SOURCE_URL, params={"iata": AIRPORT_IATA}),
+    "flightdb.net": lambda c: c.get(AIRCRAFT_DETAILS_FD_SOURCE_URL, params={"modes": AIRCRAFT_ICAO}),
     "planespotters.net": lambda c: c.get(
-        urljoin(AIRCRAFT_PHOTO_PS_SOURCE_URL, "hex/06A07A"),
+        urljoin(AIRCRAFT_PHOTO_PS_SOURCE_URL, f"hex/{AIRCRAFT_ICAO}"),
         headers={"User-Agent": os.environ["PS_USER_AGENT"]},
     ),
 }

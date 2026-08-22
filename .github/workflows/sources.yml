@@ -2,7 +2,7 @@ name: healthcheck
 
 on:
   schedule:
-    - cron: "0 0,12 * * *"
+    - cron: "0 0 * * *"
   workflow_dispatch:
 
 concurrency:
@@ -30,7 +30,12 @@ jobs:
       - name: Install dependencies
         run: uv sync
 
-      - name: Quick healthcheck
+      - name: A-check
         env:
           PS_USER_AGENT: ${{ vars.PS_USER_AGENT }}
         run: uv run python scripts/healthcheck.py
+
+      - name: B-check
+        env:
+          PS_USER_AGENT: ${{ vars.PS_USER_AGENT }}
+        run: uv run python scripts/photo_check.py

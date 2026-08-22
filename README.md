@@ -223,13 +223,13 @@ being excluded. You can review and enable each source manually using `RouteSourc
 from plane_above import RouteSource, PhotoSource
 
 route_sources = (
-  RouteSource.HX,  # https://hexdb.io/
-  RouteSource.SB,  # https://www.adsbdb.com/
+    RouteSource.HX,  # https://hexdb.io/
+    RouteSource.SB,  # https://www.adsbdb.com/
 )
 photo_sources = (
-  PhotoSource.HX,  # https://hexdb.io/
-  PhotoSource.AD,  # https://airport-data.com/terms
-  PhotoSource.PS,  # https://www.planespotters.net/photo/api#terms
+    PhotoSource.HX,  # https://hexdb.io/
+    PhotoSource.AD,  # https://airport-data.com/terms
+    PhotoSource.PS,  # https://www.planespotters.net/photo/api#terms
 )
 
 PlaneAbove((52.457, 5.531), route_sources=route_sources, photo_sources=photo_sources)

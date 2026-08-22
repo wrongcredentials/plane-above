@@ -1,5 +1,5 @@
 import asyncio
-from datetime import date, datetime
+import datetime
 from collections import ChainMap
 from urllib.parse import urljoin
 from collections.abc import Collection
@@ -95,7 +95,10 @@ class AircraftDetails:
                 return 0.0
 
             try:
-                relative_age = relativedelta(date.today(), datetime.strptime(year_built, "%Y"))
+                relative_age = relativedelta(
+                    datetime.datetime.now(tz=datetime.timezone.utc).date(),
+                    datetime.datetime.strptime(year_built, "%Y").replace(tzinfo=datetime.timezone.utc).date(),
+                )
                 age = round(relative_age.years + relative_age.months / 12.0, ndigits=1)
                 return age if age > 0 else 0.0
 

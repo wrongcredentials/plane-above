@@ -112,7 +112,7 @@ async def main() -> int:
                 ps_source(client),
                 fd_source(client),
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             log.error("Exception occurred: %s", e)
             return 1
         else:

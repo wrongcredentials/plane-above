@@ -1,6 +1,6 @@
 import json
 import math
-from datetime import datetime, timedelta
+import datetime
 
 import httpx
 
@@ -15,10 +15,10 @@ class OSNAuth:
         self.client_id = client_id
         self.client_secret = client_secret
         self.token: str | None = None
-        self.expires_at: datetime | None = None
+        self.expires_at: datetime.datetime | None = None
 
     def get_token(self) -> str | None:
-        if self.token and self.expires_at and datetime.now() < self.expires_at:
+        if self.token and self.expires_at and datetime.datetime.now(tz=datetime.timezone.utc) < self.expires_at:
             return self.token
         return self._refresh()
 
@@ -36,7 +36,9 @@ class OSNAuth:
             r.raise_for_status()
             data = r.json()
             self.token = data.get("access_token")
-            self.expires_at = datetime.now() + timedelta(seconds=data.get("expires_in", 1800) - 30)
+            self.expires_at = datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(
+                seconds=data.get("expires_in", 1800) - 30
+            )
             return self.token
 
         except (httpx.ConnectTimeout, httpx.ReadTimeout) as exc:
@@ -61,7 +63,7 @@ class OSN:
         raise ValueError("Invalid coordinates.")
 
     @staticmethod
-    def _get_bounding_box(latitude: float, longitude: float, distance: int | float) -> dict[str, float]:
+    def _get_bounding_box(latitude: float, longitude: float, distance: float) -> dict[str, float]:
         if isinstance(distance, (int, float)) is False or distance < 1:
             distance = DEFAULT_DISTANCE_FROM_POINT
             log.warning(f" ✈ Invalid distance value, will proceed with {DEFAULT_DISTANCE_FROM_POINT} as default.")
@@ -126,7 +128,7 @@ class OSN:
     def get_flying_objects(
         cls,
         point: tuple[float, float],
-        distance: int | float,
+        distance: float,
         osn_id: str,
         osn_secret: str,
         osn_proxy: str | None = None,

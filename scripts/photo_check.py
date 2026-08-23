@@ -1,6 +1,7 @@
 import os
 import asyncio
 import logging
+from typing import Any
 from urllib.parse import urljoin
 
 import httpx
@@ -18,99 +19,90 @@ from plane_above.static.sources import (
 log = logging.getLogger(__name__)
 AIRCRAFT_ICAO = "3950CE"
 AIRCRAFT_REG = "F-GUGO"
-IMAGE_CONTENT_TYPE = "image/jpeg"
 
 
-async def hx_source(client: httpx.AsyncClient) -> tuple[str, bool]:
-    name = "hexdb.io"
-    hx = await async_get(client, AIRCRAFT_PHOTO_HX_SOURCE_URL, params=dict(hex=AIRCRAFT_ICAO))
-    photo = await async_get(client, hx.data)
-    status_check = photo.status_code == httpx.codes.OK
-    content_check = photo.headers.get("content-type") == IMAGE_CONTENT_TYPE
-    return name, status_check and content_check
+class PhotoCheck:
+    def __init__(self, client: httpx.AsyncClient) -> None:
+        self.client = client
 
+    @staticmethod
+    def _statuses_check(*args: int) -> bool:
+        return all(s == httpx.codes.OK for s in args)
 
-async def sb_source(client: httpx.AsyncClient) -> tuple[str, bool]:
-    name = "adsbdb.com"
-    sb = await async_get(client, urljoin(AIRCRAFT_DETAILS_SB_SOURCE_URL, AIRCRAFT_ICAO))
-    resp = sb.json_data.get("response", {}).get("aircraft", {})
+    @staticmethod
+    def _content_check(headers: dict[Any, Any]) -> bool:
+        return "image/jpeg" in headers.get("content-type", "")
 
-    photo = await async_get(client, resp["url_photo_thumbnail"])
-    photo_status_check = photo.status_code == httpx.codes.OK
-    photo_content_check = photo.headers.get("content-type") == IMAGE_CONTENT_TYPE
+    async def hx_source(self) -> tuple[str, bool]:
+        name = "hexdb.io"
+        hx = await async_get(self.client, AIRCRAFT_PHOTO_HX_SOURCE_URL, params=dict(hex=AIRCRAFT_ICAO))
+        photo = await async_get(self.client, hx.data)
+        return name, self._statuses_check(photo.status_code) and self._content_check(photo.headers)
 
-    origin = await async_get(client, resp["url_photo"])  # noqa: F841
-    # origin_status_check = origin.status_code == httpx.codes.OK FIXME: known issue; reported directly to adsbdb
+    async def sb_source(self) -> tuple[str, bool]:
+        name = "adsbdb.com"
+        sb = await async_get(self.client, urljoin(AIRCRAFT_DETAILS_SB_SOURCE_URL, AIRCRAFT_ICAO))
+        resp = sb.json_data.get("response", {}).get("aircraft", {})
 
-    return name, photo_status_check and photo_content_check  # and origin_status_check
+        photo = await async_get(self.client, resp["url_photo_thumbnail"])
+        origin = await async_get(self.client, resp["url_photo"])  # noqa: F841
+        # FIXME: known issue; reported directly to adsbdb
 
+        return name, self._statuses_check(photo.status_code) and self._content_check(photo.headers)
 
-async def ad_source(client: httpx.AsyncClient) -> tuple[str, bool]:
-    name = "airport-data.com"
-    ad = await async_get(client, AIRCRAFT_PHOTO_AD_SOURCE_URL, params=dict(m=AIRCRAFT_ICAO, r=AIRCRAFT_REG))
-    resp = ad.json_data.get("data", [])
-    if len(resp) == 0:
-        return name, False
+    async def ad_source(self) -> tuple[str, bool]:
+        name = "airport-data.com"
+        ad = await async_get(self.client, AIRCRAFT_PHOTO_AD_SOURCE_URL, params=dict(m=AIRCRAFT_ICAO, r=AIRCRAFT_REG))
+        resp = ad.json_data.get("data", [])
+        if len(resp) == 0:
+            return name, False
 
-    photo = await async_get(client, resp[0]["image"])
-    photo_status_check = photo.status_code == httpx.codes.OK
-    photo_content_check = photo.headers.get("content-type") == IMAGE_CONTENT_TYPE
+        photo = await async_get(self.client, resp[0]["image"])
+        origin = await async_get(self.client, resp[0]["link"])
+        replace = await async_get(self.client, AircraftPhoto.make_ad_image_url(resp[0]["image"]))
 
-    origin = await async_get(client, resp[0]["link"])
-    origin_status_check = origin.status_code == httpx.codes.OK
+        return name, self._statuses_check(
+            photo.status_code, origin.status_code, replace.status_code
+        ) and self._content_check(photo.headers) and self._content_check(replace.headers)
 
-    replace = await async_get(client, AircraftPhoto.make_ad_image_url(resp[0]["image"]))
-    replace_status_check = replace.status_code == httpx.codes.OK
+    async def ps_source(self) -> tuple[str, bool]:
+        headers = {"User-Agent": os.environ["PS_USER_AGENT"]}
+        name = "planespotters.net"
+        ps = await async_get(
+            self.client,
+            urljoin(AIRCRAFT_PHOTO_PS_SOURCE_URL, f"reg/{AIRCRAFT_REG}"),
+            headers=headers,
+        )
+        resp = ps.json_data.get("photos", [])
+        if len(resp) == 0:
+            return name, False
 
-    return name, photo_status_check and photo_content_check and origin_status_check and replace_status_check
+        photo = await async_get(self.client, resp[0]["thumbnail_large"]["src"], headers=headers)
+        origin = await async_get(self.client, resp[0]["link"], headers=headers)
 
+        return name, self._statuses_check(photo.status_code, origin.status_code) and self._content_check(photo.headers)
 
-async def ps_source(client: httpx.AsyncClient) -> tuple[str, bool]:
-    headers = {"User-Agent": os.environ["PS_USER_AGENT"]}
-    name = "planespotters.net"
-    ps = await async_get(
-        client,
-        urljoin(AIRCRAFT_PHOTO_PS_SOURCE_URL, f"reg/{AIRCRAFT_REG}"),
-        headers=headers,
-    )
-    resp = ps.json_data.get("photos", [])
-    if len(resp) == 0:
-        return name, False
+    async def fd_source(self) -> tuple[str, bool]:
+        name = "flightdb.net"
+        fd = await async_get(self.client, AIRCRAFT_DETAILS_FD_SOURCE_URL, params=dict(modes=AIRCRAFT_ICAO))
+        resp = AircraftDetails._parse_fd_source(fd.data)
 
-    photo = await async_get(client, resp[0]["thumbnail_large"]["src"], headers=headers)
-    photo_status_check = photo.status_code == httpx.codes.OK
-    photo_content_check = photo.headers.get("content-type") == IMAGE_CONTENT_TYPE
+        photo = await async_get(self.client, resp["fd_image_url"])
+        origin = await async_get(self.client, resp["fd_origin_url"])
 
-    origin = await async_get(client, resp[0]["link"], headers=headers)
-    origin_status_check = origin.status_code == httpx.codes.OK
-
-    return name, photo_status_check and photo_content_check and origin_status_check
-
-
-async def fd_source(client: httpx.AsyncClient) -> tuple[str, bool]:
-    name = "flightdb.net"
-    fd = await async_get(client, AIRCRAFT_DETAILS_FD_SOURCE_URL, params=dict(modes=AIRCRAFT_ICAO))
-    resp = AircraftDetails._parse_fd_source(fd.data)
-
-    photo = await async_get(client, resp["fd_image_url"])
-    photo_status_check = photo.status_code == httpx.codes.OK
-    photo_content_check = photo.headers.get("content-type") == IMAGE_CONTENT_TYPE
-
-    origin = await async_get(client, resp["fd_origin_url"])
-    origin_status_check = origin.status_code == httpx.codes.OK
-
-    return name, photo_status_check and photo_content_check and origin_status_check
+        return name, self._statuses_check(photo.status_code, origin.status_code) and self._content_check(photo.headers)
 
 
 async def main() -> int:
     async with httpx.AsyncClient() as client:
         try:
+            check = PhotoCheck(client)
             result = await asyncio.gather(
-                hx_source(client),
-                sb_source(client),
-                ad_source(client),
-                ps_source(client),
-                fd_source(client),
+                check.hx_source(),
+                check.sb_source(),
+                check.ad_source(),
+                check.ps_source(),
+                check.fd_source(),
             )
         except Exception as e:  # noqa: BLE001
             log.error("Exception occurred: %s", e)

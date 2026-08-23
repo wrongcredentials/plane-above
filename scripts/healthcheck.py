@@ -1,7 +1,9 @@
 import os
+import asyncio
 import logging
+from typing import Any
 from urllib.parse import urljoin
-from collections.abc import Callable
+from collections.abc import Callable, Coroutine
 
 import httpx
 
@@ -18,7 +20,7 @@ log = logging.getLogger(__name__)
 
 AIRCRAFT_ICAO = "06A07A"
 AIRPORT_IATA = "ICN"
-SOURCES: dict[str, Callable[[httpx.Client], httpx.Response]] = {
+SOURCES: dict[str, Callable[[httpx.AsyncClient], Coroutine[Any, Any, httpx.Response]]] = {
     "opensky-network.org": lambda c: c.get(urljoin(OPENSKY_API_BASE_URL, "states/all")),
     "hexdb.io": lambda c: c.get(urljoin(AIRPORT_DETAILS_HX_SOURCE_URL, AIRPORT_IATA)),
     "adsbdb.com": lambda c: c.get(urljoin(ADSB_DB_API_BASE_URL, "online")),
@@ -31,18 +33,23 @@ SOURCES: dict[str, Callable[[httpx.Client], httpx.Response]] = {
 }
 
 
-def main() -> int:
-    failed_sources = []
+async def main() -> int:
+    async def _check_source(
+        _client: httpx.AsyncClient,
+        name: str,
+        request: Callable[[httpx.AsyncClient], Coroutine[Any, Any, httpx.Response]],
+    ) -> str | None:
+        try:
+            r = await request(_client)
+            r.raise_for_status()
+            return None
+        except httpx.HTTPError as exc:
+            return f"{name}: {exc}"
 
-    with httpx.Client(timeout=10.0) as client:
-        for name, request in SOURCES.items():
-            try:
-                r = request(client)
-                r.raise_for_status()
-            except httpx.HTTPError as exc:
-                failed_sources.append(f"{name}: {exc}")
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        results = await asyncio.gather(*(_check_source(client, name, request) for name, request in SOURCES.items()))
 
-    if failed_sources:
+    if failed_sources := [r for r in results if r is not None]:
         log.error("%d/%d sources failed: %s", len(failed_sources), len(SOURCES), ", ".join(failed_sources))
         return 1
 
@@ -52,4 +59,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
-    raise SystemExit(main())
+    raise SystemExit(asyncio.run(main()))

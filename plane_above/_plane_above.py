@@ -25,7 +25,7 @@ class PlaneAbove:
         self,
         point: tuple[float, float],
         *,
-        distance: int | float = DEFAULT_DISTANCE_FROM_POINT,
+        distance: float = DEFAULT_DISTANCE_FROM_POINT,
         osn_id: str = "",
         osn_secret: str = "",
         osn_proxy: str | None = None,
@@ -83,9 +83,9 @@ class PlaneAbove:
             )
             return aircraft, flight, f_object.state
 
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             log.error(f" ✈ Exception occurred for plane {f_object.icao24}: {exc}")
-            self.spotted.errors.append((f"{f_object.icao24=}", exc))
+            self.spotted.errors.append((f"{f_object.icao24}", str(exc)))
             return (
                 Aircraft(
                     icao24=f_object.icao24,

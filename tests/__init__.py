@@ -38,6 +38,7 @@ class AircraftMocks:
     HX_AIRCRAFT_RESP_404 = {"status_code": 404, "json": {"status": "404", "error": "Aircraft not found."}, "headers": HEADER_JSON}
     HX_AIRCRAFT_RESP_502 = {"status_code": 502, "json": {}}
     FD_AIRCRAFT_RESP_200 = {"status_code": 200, "text": _load_html("tests/data/aircraft/aircraft_fd.html"), "headers": HEADER_HTML}
+    FD_AIRCRAFT_BAD_RESP_200 = {"status_code": 200, "text": _load_html("tests/data/aircraft/aircraft_fd_bad.html"), "headers": HEADER_HTML}
     FD_AIRCRAFT_RESP_404 = {"status_code": 200, "text": _load_html("tests/data/aircraft/aircraft_fd_empty.html"), "headers": HEADER_HTML}
     FD_AIRCRAFT_RESP_502 = {"status_code": 502, "text": ""}
 
@@ -69,11 +70,13 @@ class FlightMocks:
     AD_DST_AIRPORT_URL = urljoin(sources.AIRPORT_DETAILS_AD_SOURCE_URL, f"?iata={AIRPORT_DESTINATION_IATA}")
     AD_MID_AIRPORT_URL = urljoin(sources.AIRPORT_DETAILS_AD_SOURCE_URL, f"?iata={AIRPORT_MIDPOINT_IATA}")
 
-    HX_ROUTE_RESP_200 = {"status_code": 200, "json": {"flight": "UAE181", "route": f"{AIRPORT_DEPARTURE_IATA}-{AIRPORT_DESTINATION_IATA}", "updatetime": 1747593022}, "headers": HEADER_JSON}
+    HX_ROUTE_RESP_200 = {"status_code": 200, "json": {"flight": "UAE181", "route": f"{AIRPORT_DEPARTURE_IATA}-{AIRPORT_DESTINATION_IATA}", "updatetime": 1536225143}, "headers": HEADER_JSON}
     HX_ROUTE_RESP_404 = {"status_code": 404, "json": {"status": "404", "error": "Route not found."}, "headers": HEADER_JSON}
     HX_ROUTE_RESP_502 = {"status_code": 502, "json": {}}
     HX_ROUTE_VAR_RESP_200 = {"status_code": 200, "json": {"flight": "VJT750", "route": "Varies", "updatetime": 1747593022}, "headers": HEADER_JSON}
-    HX_ROUTE_MP_RESP_200 = {"status_code": 200, "json": {"flight": "UAE192", "route": f"{AIRPORT_DEPARTURE_IATA}-{AIRPORT_MIDPOINT_IATA}-{AIRPORT_DESTINATION_IATA}", "updatetime": 1747594544}, "headers": HEADER_JSON}
+    HX_ROUTE_MP_RESP_200 = {"status_code": 200, "json": {"flight": "UAE192", "route": f"{AIRPORT_DEPARTURE_IATA}-{AIRPORT_MIDPOINT_IATA}-{AIRPORT_DESTINATION_IATA}", "updatetime": 1820221943}, "headers": HEADER_JSON}
+    HX_ROUTE_AS_SB_RESP_200 = {"status_code": 200, "json": {"flight": "JNA66", "route": "CRK-PUS", "updatetime": 1536225143}, "headers": HEADER_JSON}
+    HX_ROUTE_ROUND_RESP_200 = {"status_code": 200, "json": {"flight": "QTR3E", "route": "DOH-DUB-DOH", "updatetime": 1820221943}, "headers": HEADER_JSON}
     SB_ROUTE_RESP_200 = {"status_code": 200, "json": _load_json("tests/data/flight/route_sb.json"), "headers": HEADER_JSON}
     SB_ROUTE_RESP_404 = {"status_code": 404, "json": {"response": "unknown callsign"}, "headers": HEADER_JSON}
     SB_ROUTE_RESP_502 = {"status_code": 502, "json": {}}

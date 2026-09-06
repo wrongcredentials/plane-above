@@ -56,6 +56,27 @@ ROUTE_HX_WITH_STOP = Flight(
     stops=[
         Airport(
             iata="MID",
+            name="Valencia Airport",
+            country_code="ES",
+        ),
+    ],
+    airline="",
+)
+ROUTE_HX_AD_WITH_STOP = Flight(
+    callsign=FLIGHT_CALLSIGN,
+    departure=Airport(
+        iata="DEP",
+        name="Valencia Airport",
+        country_code="ES",
+    ),
+    destination=Airport(
+        iata="DST",
+        name="Valencia Airport",
+        country_code="ES",
+    ),
+    stops=[
+        Airport(
+            iata="MID",
             name="Jeju International Airport",
             country_code="KR",
         ),
@@ -129,9 +150,10 @@ async def test_hx_route_source_ok(async_client: httpx.AsyncClient, httpx_mock: H
     httpx_mock.add_response(url=FlightMocks.HX_DST_AIRPORT_URL, **FlightMocks.HX_AIRPORT_RESP_200, is_reusable=True)
 
     route_from_hx = await FlightRoute._get_route_from_hx(async_client, FLIGHT_CALLSIGN)
-    route = await FlightRoute.get_route(async_client, FLIGHT_CALLSIGN, {RouteSource.HX, RouteSource.SB})
+    assert route_from_hx == ("DEP", "DST", [], 1536225143)
 
-    assert route == route_from_hx == ROUTE_HX
+    route = await FlightRoute.get_route(async_client, FLIGHT_CALLSIGN, (RouteSource.HX,))
+    assert route == ROUTE_HX
 
 
 @pytest.mark.asyncio
@@ -142,15 +164,21 @@ async def test_hx_ad_route_source_ok(async_client: httpx.AsyncClient, httpx_mock
     httpx_mock.add_response(url=FlightMocks.AD_DEP_AIRPORT_URL, **FlightMocks.AD_AIRPORT_RESP_200)
     httpx_mock.add_response(url=FlightMocks.AD_DST_AIRPORT_URL, **FlightMocks.AD_AIRPORT_RESP_200)
 
-    route = await FlightRoute._get_route_from_hx(async_client, FLIGHT_CALLSIGN)
+    route = await FlightRoute.get_route(async_client, FLIGHT_CALLSIGN, (RouteSource.HX,))
     assert route == ROUTE_HX_AD
 
 
 @pytest.mark.asyncio
 async def test_sb_route_source_ok(async_client: httpx.AsyncClient, httpx_mock: HTTPXMock):
-    httpx_mock.add_response(url=FlightMocks.SB_ROUTE_URL, **FlightMocks.SB_ROUTE_RESP_200)
+    httpx_mock.add_response(url=FlightMocks.SB_ROUTE_URL, **FlightMocks.SB_ROUTE_RESP_200, is_reusable=True)
 
-    route = await FlightRoute._get_route_from_sb(async_client, FLIGHT_CALLSIGN)
+    route_from_sb = await FlightRoute._get_route_from_sb(async_client, FLIGHT_CALLSIGN)
+    assert route_from_sb is not None
+    assert route_from_sb[0] == "CRK"
+    assert route_from_sb[1] == "PUS"
+    assert route_from_sb[2] == []
+
+    route = await FlightRoute.get_route(async_client, FLIGHT_CALLSIGN, (RouteSource.SB,))
     assert route == ROUTE_SB
 
 
@@ -162,16 +190,28 @@ async def test_hx_route_source_mp_ok(async_client: httpx.AsyncClient, httpx_mock
     httpx_mock.add_response(url=FlightMocks.HX_MID_AIRPORT_URL, **FlightMocks.HX_AIRPORT_RESP_404)
     httpx_mock.add_response(url=FlightMocks.AD_MID_AIRPORT_URL, **FlightMocks.AD_AIRPORT_RESP_200)
 
-    route = await FlightRoute._get_route_from_hx(async_client, FLIGHT_CALLSIGN)
-    assert route == ROUTE_HX_WITH_STOP
+    route = await FlightRoute.get_route(async_client, FLIGHT_CALLSIGN, (RouteSource.HX,))
+    assert route == ROUTE_HX_AD_WITH_STOP
 
 
 @pytest.mark.asyncio
 async def test_sb_route_source_mp_ok(async_client: httpx.AsyncClient, httpx_mock: HTTPXMock):
     httpx_mock.add_response(url=FlightMocks.SB_ROUTE_URL, **FlightMocks.SB_ROUTE_MP_RESP_200)
 
-    route = await FlightRoute._get_route_from_sb(async_client, FLIGHT_CALLSIGN)
+    route = await FlightRoute.get_route(async_client, FLIGHT_CALLSIGN, (RouteSource.SB,))
     assert route == ROUTE_SB_WITH_STOP
+
+
+@pytest.mark.asyncio
+async def test_all_route_sources_mp_ok(async_client: httpx.AsyncClient, httpx_mock: HTTPXMock):
+    httpx_mock.add_response(url=FlightMocks.SB_ROUTE_URL, **FlightMocks.SB_ROUTE_MP_RESP_200)
+    httpx_mock.add_response(url=FlightMocks.HX_ROUTE_URL, **FlightMocks.HX_ROUTE_MP_RESP_200)
+    httpx_mock.add_response(url=FlightMocks.HX_DEP_AIRPORT_URL, **FlightMocks.HX_AIRPORT_RESP_200)
+    httpx_mock.add_response(url=FlightMocks.HX_DST_AIRPORT_URL, **FlightMocks.HX_AIRPORT_RESP_200)
+    httpx_mock.add_response(url=FlightMocks.HX_MID_AIRPORT_URL, **FlightMocks.HX_AIRPORT_RESP_200)
+
+    route = await FlightRoute.get_route(async_client, FLIGHT_CALLSIGN, (RouteSource.SB, RouteSource.HX))
+    assert route == ROUTE_HX_WITH_STOP
 
 
 @pytest.mark.asyncio
@@ -182,7 +222,7 @@ async def test_hx_ad_route_source_empty(async_client: httpx.AsyncClient, httpx_m
     httpx_mock.add_response(url=FlightMocks.AD_DEP_AIRPORT_URL, **FlightMocks.AD_AIRPORT_RESP_404)
     httpx_mock.add_response(url=FlightMocks.AD_DST_AIRPORT_URL, **FlightMocks.AD_AIRPORT_RESP_502)
 
-    route = await FlightRoute._get_route_from_hx(async_client, FLIGHT_CALLSIGN)
+    route = await FlightRoute.get_route(async_client, FLIGHT_CALLSIGN, (RouteSource.HX,))
     assert route == ROUTE_AIRPORT_UNKNOWN
 
 
@@ -225,6 +265,33 @@ async def test_hx_route_source_unavailable_without_sb_setup(async_client: httpx.
 
     route = await FlightRoute.get_route(async_client, FLIGHT_CALLSIGN, {RouteSource.HX})
     assert route == ROUTE_EMPTY
+
+
+@pytest.mark.asyncio
+async def test_all_route_sources_ok(async_client: httpx.AsyncClient, httpx_mock: HTTPXMock):
+    httpx_mock.add_response(url=FlightMocks.HX_ROUTE_URL, **FlightMocks.HX_ROUTE_RESP_200)
+    httpx_mock.add_response(url=FlightMocks.SB_ROUTE_URL, **FlightMocks.SB_ROUTE_RESP_200)
+
+    route = await FlightRoute.get_route(async_client, FLIGHT_CALLSIGN, (RouteSource.SB, RouteSource.HX))
+    assert route == ROUTE_SB
+
+
+@pytest.mark.asyncio
+async def test_all_route_sources_agree(async_client: httpx.AsyncClient, httpx_mock: HTTPXMock):
+    httpx_mock.add_response(url=FlightMocks.HX_ROUTE_URL, **FlightMocks.HX_ROUTE_AS_SB_RESP_200)
+    httpx_mock.add_response(url=FlightMocks.SB_ROUTE_URL, **FlightMocks.SB_ROUTE_RESP_200)
+
+    route = await FlightRoute.get_route(async_client, FLIGHT_CALLSIGN, (RouteSource.SB, RouteSource.HX))
+    assert route == ROUTE_SB
+
+
+@pytest.mark.asyncio
+async def test_hx_route_source_round(async_client: httpx.AsyncClient, httpx_mock: HTTPXMock):
+    httpx_mock.add_response(url=FlightMocks.HX_ROUTE_URL, **FlightMocks.HX_ROUTE_ROUND_RESP_200)
+    httpx_mock.add_response(url=FlightMocks.SB_ROUTE_URL, **FlightMocks.SB_ROUTE_RESP_200)
+
+    route = await FlightRoute.get_route(async_client, FLIGHT_CALLSIGN, (RouteSource.SB, RouteSource.HX))
+    assert route == ROUTE_SB
 
 
 @pytest.mark.asyncio

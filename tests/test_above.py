@@ -3,7 +3,9 @@ from pytest_httpx import HTTPXMock
 
 from tests import PhotoMocks, FlightMocks, AircraftMocks
 from tests.data import AIRCRAFT_ICAO, FLIGHT_CALLSIGN, AIRCRAFT_COUNTRY
-from plane_above.models import State, FlyingObject
+from plane_above.flight import FlightRoute
+from plane_above.models import Photo, State, Flight, Airport, Aircraft, FlyingObject
+from plane_above.aircraft import AircraftDetails
 from tests.data.osn.flying_objects import ABOVE_FETCH
 
 
@@ -43,7 +45,7 @@ def test_sync_fetch(plane_above_mock, httpx_mock: HTTPXMock):
         assert above.aircraft.model == "737-8 MAX"
         assert above.aircraft.type_code == "B788"
         assert len(above.aircraft.photos) == 1
-        assert above.aircraft.photos[0].has_urls is True
+        assert above.aircraft.photos[0]._has_urls is True
         assert above.aircraft.photos[0].image_url == "https://image.airport-data.com/aircraft/001868532.jpg"
         assert above.aircraft.photos[0].origin_url == "https://airport-data.com/aircraft/photo/001868532"
         assert above.aircraft.photos[0].photographer == ""
@@ -104,7 +106,7 @@ async def test_async_fetch(plane_above_mock, httpx_mock: HTTPXMock):
         assert above.aircraft.model == "737-8 MAX"
         assert above.aircraft.type_code == "B788"
         assert above.aircraft.operator == "Qatar Airways"
-        assert above.photo.has_urls is True
+        assert above.photo._has_urls is True
         assert above.photo.image_url == "https://hexdb.io/static/aircraft-images/PH-BXC.jpg"
         assert above.photo.origin_url == "https://hexdb.io/static/aircraft-images/PH-BXC.jpg"
         assert above.photo.photographer == ""
@@ -123,3 +125,49 @@ async def test_async_fetch(plane_above_mock, httpx_mock: HTTPXMock):
         assert above.state.velocity == 174
         assert above.state.latitude == 51.5724
         assert above.state.longitude == 5.2843
+
+
+@pytest.mark.parametrize(
+    "plane_above_mock",
+    [ABOVE_FETCH],
+    indirect=True,
+)
+def test_fetch_error(plane_above_mock, monkeypatch, httpx_mock: HTTPXMock):
+    async def broken_get_details(*args, **kwargs):
+        raise RuntimeError("Pull up!")
+
+    monkeypatch.setattr(AircraftDetails, "get_details", broken_get_details)
+    monkeypatch.setattr(FlightRoute, "get_route", broken_get_details)
+
+    results = list(plane_above_mock.fetch())
+    assert len(results) == 1
+    assert len(plane_above_mock.spotted.errors) == 1
+    error_key, error_message = plane_above_mock.spotted.errors[0]
+    assert error_key == AIRCRAFT_ICAO
+    assert error_message == "Pull up!"
+    assert results[0] == (
+        Aircraft(
+            icao24=AIRCRAFT_ICAO,
+            registration="",
+            manufacturer="",
+            model="",
+            type_code="",
+            country=AIRCRAFT_COUNTRY,
+            operator="",
+            age=0.0,
+            photos=[Photo()],
+        ),
+        Flight(
+            callsign=FLIGHT_CALLSIGN,
+            departure=Airport(),
+            destination=Airport(),
+            stops=[],
+            airline="",
+        ),
+        State(
+            altitude=366,
+            velocity=174,
+            latitude=51.5724,
+            longitude=5.2843,
+        ),
+    )

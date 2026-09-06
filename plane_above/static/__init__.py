@@ -1,4 +1,5 @@
 from .enums import PhotoSource, RouteSource
+from .types import OSNStateVectorType
 from .sources import (
     OPENSKY_AUTH_URL,
     AIRCRAFT_IN_AREA_SOURCE_URL,
@@ -32,6 +33,7 @@ __all__ = [
     "OPENSKY_AUTH_URL",
     "ROUTE_DETAILS_HX_SOURCE_URL",
     "ROUTE_DETAILS_SB_SOURCE_URL",
+    "OSNStateVectorType",
     "PhotoSource",
     "RouteSource",
 ]

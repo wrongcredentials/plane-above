@@ -46,7 +46,7 @@ class PhotoCheck:
 
         photo = await async_get(self.client, resp["url_photo_thumbnail"])
         origin = await async_get(self.client, resp["url_photo"])  # noqa: F841
-        # FIXME: known issue; reported directly to adsbdb
+        # FIXME: known issue; reported directly to adsbdb: https://github.com/mrjackwills/adsbdb/issues/92
 
         return name, self._statuses_check(photo.status_code) and self._content_check(photo.headers)
 

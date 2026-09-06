@@ -83,7 +83,7 @@ allow-dict-calls-with-keyword-arguments = true
 length-sort = true
 
 [tool.pytest.ini_options]
-addopts = "-vv --cov --cov-report term-missing --cov-fail-under=85"
+addopts = "-vv --cov --cov-report term-missing --cov-fail-under=90"
 asyncio_default_fixture_loop_scope = "session"
 testpaths = ["tests"]
 

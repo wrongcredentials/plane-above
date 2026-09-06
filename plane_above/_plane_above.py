@@ -85,7 +85,7 @@ class PlaneAbove:
 
         except Exception as exc:  # noqa: BLE001
             log.error(f" ✈ Exception occurred for plane {f_object.icao24}: {exc}")
-            self.spotted.errors.append((f"{f_object.icao24=}", str(exc)))
+            self.spotted.errors.append((f"{f_object.icao24}", str(exc)))
             return (
                 Aircraft(
                     icao24=f_object.icao24,

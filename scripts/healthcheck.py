@@ -51,7 +51,7 @@ async def main() -> int:
         except httpx.HTTPError as exc:
             return f"{name}: {exc}"
 
-    async with httpx.AsyncClient(timeout=10.0, proxy=os.environ.get("OSN_PROXY_URL") or None) as client:
+    async with httpx.AsyncClient(timeout=10.0, proxy=os.environ.get("PROXY_URL") or None) as client:
         results = await asyncio.gather(*(_check_source(client, name, request) for name, request in SOURCES.items()))
 
     if failed_sources := [r for r in results if r is not None]:

@@ -24,7 +24,11 @@ SOURCES: dict[str, Callable[[httpx.AsyncClient], Coroutine[Any, Any, httpx.Respo
     "opensky-network.org": lambda c: c.get(urljoin(OPENSKY_API_BASE_URL, "states/all")),
     "hexdb.io": lambda c: c.get(urljoin(AIRPORT_DETAILS_HX_SOURCE_URL, AIRPORT_IATA)),
     "adsbdb.com": lambda c: c.get(urljoin(ADSB_DB_API_BASE_URL, "online")),
-    "airport-data.com": lambda c: c.get(AIRPORT_DETAILS_AD_SOURCE_URL, params={"iata": AIRPORT_IATA}),
+    "airport-data.com": lambda c: c.get(
+        AIRPORT_DETAILS_AD_SOURCE_URL,
+        headers={"User-Agent": os.environ["PS_USER_AGENT"]},
+        params={"iata": AIRPORT_IATA},
+    ),
     "flightdb.net": lambda c: c.get(AIRCRAFT_DETAILS_FD_SOURCE_URL, params={"modes": AIRCRAFT_ICAO}),
     "planespotters.net": lambda c: c.get(
         urljoin(AIRCRAFT_PHOTO_PS_SOURCE_URL, f"hex/{AIRCRAFT_ICAO}"),

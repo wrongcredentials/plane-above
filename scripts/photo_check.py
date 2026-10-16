@@ -19,6 +19,8 @@ from plane_above.static.sources import (
 log = logging.getLogger(__name__)
 AIRCRAFT_ICAO = "3950CE"
 AIRCRAFT_REG = "F-GUGO"
+HEADERS = {"User-Agent": os.environ["PS_USER_AGENT"]}
+ALL_SOURCES = {"hexdb.io", "adsbdb.com", "airport-data.com", "planespotters.net", "flightdb.net"}
 
 
 class PhotoCheck:
@@ -45,20 +47,24 @@ class PhotoCheck:
         resp = sb.json_data.get("response", {}).get("aircraft", {})
 
         photo = await async_get(self.client, resp["url_photo_thumbnail"])
-        origin = await async_get(self.client, resp["url_photo"])  # noqa: F841
-        # FIXME: known issue; reported directly to adsbdb: https://github.com/mrjackwills/adsbdb/issues/92
+        origin = await async_get(self.client, resp["url_photo"])
 
-        return name, self._statuses_check(photo.status_code) and self._content_check(photo.headers)
+        return name, self._statuses_check(photo.status_code, origin.status_code) and self._content_check(photo.headers)
 
     async def ad_source(self) -> tuple[str, bool]:
         name = "airport-data.com"
-        ad = await async_get(self.client, AIRCRAFT_PHOTO_AD_SOURCE_URL, params=dict(m=AIRCRAFT_ICAO, r=AIRCRAFT_REG))
+        ad = await async_get(
+            self.client,
+            AIRCRAFT_PHOTO_AD_SOURCE_URL,
+            headers=HEADERS,
+            params=dict(m=AIRCRAFT_ICAO, r=AIRCRAFT_REG),
+        )
         resp = ad.json_data.get("data", [])
         if len(resp) == 0:
             return name, False
 
-        photo = await async_get(self.client, resp[0]["image"])
-        origin = await async_get(self.client, resp[0]["link"])
+        photo = await async_get(self.client, resp[0]["image"], headers=HEADERS)
+        origin = await async_get(self.client, resp[0]["link"], headers=HEADERS)
         replace = await async_get(self.client, AircraftPhoto.make_ad_image_url(resp[0]["image"]))
 
         return name, self._statuses_check(
@@ -66,19 +72,18 @@ class PhotoCheck:
         ) and self._content_check(photo.headers) and self._content_check(replace.headers)
 
     async def ps_source(self) -> tuple[str, bool]:
-        headers = {"User-Agent": os.environ["PS_USER_AGENT"]}
         name = "planespotters.net"
         ps = await async_get(
             self.client,
             urljoin(AIRCRAFT_PHOTO_PS_SOURCE_URL, f"reg/{AIRCRAFT_REG}"),
-            headers=headers,
+            headers=HEADERS,
         )
         resp = ps.json_data.get("photos", [])
         if len(resp) == 0:
             return name, False
 
-        photo = await async_get(self.client, resp[0]["thumbnail_large"]["src"], headers=headers)
-        origin = await async_get(self.client, resp[0]["link"], headers=headers)
+        photo = await async_get(self.client, resp[0]["thumbnail_large"]["src"], headers=HEADERS)
+        origin = await async_get(self.client, resp[0]["link"], headers=HEADERS)
 
         return name, self._statuses_check(photo.status_code, origin.status_code) and self._content_check(photo.headers)
 
@@ -87,33 +92,33 @@ class PhotoCheck:
         fd = await async_get(self.client, AIRCRAFT_DETAILS_FD_SOURCE_URL, params=dict(modes=AIRCRAFT_ICAO))
         resp = AircraftDetails._parse_fd_source(fd.data)
 
-        photo = await async_get(self.client, resp["fd_image_url"])
-        origin = await async_get(self.client, resp["fd_origin_url"])
+        photo = await async_get(self.client, resp["fd_image_url"], headers=HEADERS)
+        origin = await async_get(self.client, resp["fd_origin_url"], headers=HEADERS)
 
         return name, self._statuses_check(photo.status_code, origin.status_code) and self._content_check(photo.headers)
 
 
 async def main() -> int:
     async with httpx.AsyncClient() as client:
-        try:
-            check = PhotoCheck(client)
-            result = await asyncio.gather(
-                check.hx_source(),
-                check.sb_source(),
-                check.ad_source(),
-                check.ps_source(),
-                check.fd_source(),
-            )
-        except Exception as e:  # noqa: BLE001
-            log.error("Exception occurred: %s", e)
-            return 1
-        else:
-            if failed_sources := [source[0] for source in result if source[1] is False]:
-                log.error("%d/%d sources failed: %s", len(failed_sources), len(result), ", ".join(failed_sources))
-                return 1
+        check = PhotoCheck(client)
+        result = await asyncio.gather(
+            check.hx_source(),
+            check.sb_source(),
+            check.ad_source(),
+            check.ps_source(),
+            check.fd_source(),
+            return_exceptions=True,
+        )
 
-            log.info("All %d sources passed", len(result))
+        passed_sources = {r[0] for r in result if (isinstance(r, tuple) and r[1] is True)}
+
+        if len(passed_sources) == len(ALL_SOURCES):
+            log.info("All %d sources passed", len(passed_sources))
             return 0
+
+        failed_sources = ALL_SOURCES - passed_sources
+        log.error("%d/%d sources failed: %s", len(failed_sources), len(result), ", ".join(failed_sources))
+        return 1
 
 
 if __name__ == "__main__":

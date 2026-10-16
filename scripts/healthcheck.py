@@ -20,19 +20,20 @@ log = logging.getLogger(__name__)
 
 AIRCRAFT_ICAO = "06A07A"
 AIRPORT_IATA = "ICN"
+HEADERS = {"User-Agent": os.environ["PS_USER_AGENT"]}
 SOURCES: dict[str, Callable[[httpx.AsyncClient], Coroutine[Any, Any, httpx.Response]]] = {
     "opensky-network.org": lambda c: c.get(urljoin(OPENSKY_API_BASE_URL, "states/all")),
     "hexdb.io": lambda c: c.get(urljoin(AIRPORT_DETAILS_HX_SOURCE_URL, AIRPORT_IATA)),
     "adsbdb.com": lambda c: c.get(urljoin(ADSB_DB_API_BASE_URL, "online")),
     "airport-data.com": lambda c: c.get(
         AIRPORT_DETAILS_AD_SOURCE_URL,
-        headers={"User-Agent": os.environ["PS_USER_AGENT"]},
+        headers=HEADERS,
         params={"iata": AIRPORT_IATA},
     ),
     "flightdb.net": lambda c: c.get(AIRCRAFT_DETAILS_FD_SOURCE_URL, params={"modes": AIRCRAFT_ICAO}),
     "planespotters.net": lambda c: c.get(
         urljoin(AIRCRAFT_PHOTO_PS_SOURCE_URL, f"hex/{AIRCRAFT_ICAO}"),
-        headers={"User-Agent": os.environ["PS_USER_AGENT"]},
+        headers=HEADERS,
     ),
 }
 
@@ -50,7 +51,7 @@ async def main() -> int:
         except httpx.HTTPError as exc:
             return f"{name}: {exc}"
 
-    async with httpx.AsyncClient(timeout=10.0) as client:
+    async with httpx.AsyncClient(timeout=10.0, proxy=os.environ.get("OSN_PROXY_URL") or None) as client:
         results = await asyncio.gather(*(_check_source(client, name, request) for name, request in SOURCES.items()))
 
     if failed_sources := [r for r in results if r is not None]:

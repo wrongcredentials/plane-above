@@ -1,4 +1,3 @@
-import os
 import asyncio
 import logging
 from typing import Any
@@ -6,7 +5,9 @@ from urllib.parse import urljoin
 from collections.abc import Callable, Coroutine
 
 import httpx
+from common import HEADERS, PROXY_MOUNTS
 
+from plane_above.static.enums import Source
 from plane_above.static.sources import (
     ADSB_DB_API_BASE_URL,
     OPENSKY_API_BASE_URL,
@@ -20,18 +21,17 @@ log = logging.getLogger(__name__)
 
 AIRCRAFT_ICAO = "06A07A"
 AIRPORT_IATA = "ICN"
-HEADERS = {"User-Agent": os.environ["PS_USER_AGENT"]}
 SOURCES: dict[str, Callable[[httpx.AsyncClient], Coroutine[Any, Any, httpx.Response]]] = {
-    "opensky-network.org": lambda c: c.get(urljoin(OPENSKY_API_BASE_URL, "states/all")),
-    "hexdb.io": lambda c: c.get(urljoin(AIRPORT_DETAILS_HX_SOURCE_URL, AIRPORT_IATA)),
-    "adsbdb.com": lambda c: c.get(urljoin(ADSB_DB_API_BASE_URL, "online")),
-    "airport-data.com": lambda c: c.get(
+    Source.OS: lambda c: c.get(urljoin(OPENSKY_API_BASE_URL, "states/all")),
+    Source.HX: lambda c: c.get(urljoin(AIRPORT_DETAILS_HX_SOURCE_URL, AIRPORT_IATA)),
+    Source.SB: lambda c: c.get(urljoin(ADSB_DB_API_BASE_URL, "online")),
+    Source.AD: lambda c: c.get(
         AIRPORT_DETAILS_AD_SOURCE_URL,
         headers=HEADERS,
         params={"iata": AIRPORT_IATA},
     ),
-    "flightdb.net": lambda c: c.get(AIRCRAFT_DETAILS_FD_SOURCE_URL, params={"modes": AIRCRAFT_ICAO}),
-    "planespotters.net": lambda c: c.get(
+    Source.FD: lambda c: c.get(AIRCRAFT_DETAILS_FD_SOURCE_URL, params={"modes": AIRCRAFT_ICAO}),
+    Source.PS: lambda c: c.get(
         urljoin(AIRCRAFT_PHOTO_PS_SOURCE_URL, f"hex/{AIRCRAFT_ICAO}"),
         headers=HEADERS,
     ),
@@ -51,11 +51,11 @@ async def main() -> int:
         except httpx.HTTPError as exc:
             return f"{name}: {exc}"
 
-    async with httpx.AsyncClient(timeout=10.0, proxy=os.environ.get("PROXY_URL") or None) as client:
+    async with httpx.AsyncClient(timeout=10.0, mounts=PROXY_MOUNTS) as client:
         results = await asyncio.gather(*(_check_source(client, name, request) for name, request in SOURCES.items()))
 
     if failed_sources := [r for r in results if r is not None]:
-        log.error("%d/%d sources failed: %s", len(failed_sources), len(SOURCES), ", ".join(failed_sources))
+        log.error("%d/%d sources failed: %s", len(failed_sources), len(SOURCES), "; ".join(failed_sources))
         return 1
 
     log.info("All %d sources passed", len(SOURCES))

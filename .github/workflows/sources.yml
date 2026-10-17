@@ -39,4 +39,5 @@ jobs:
       - name: B-check
         env:
           PS_USER_AGENT: ${{ vars.PS_USER_AGENT }}
+          PROXY_URL: ${{ secrets.PROXY_URL }}
         run: uv run python scripts/photo_check.py

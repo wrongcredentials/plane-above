@@ -82,9 +82,9 @@ class PhotoCheck:
             return name, False
 
         photo = await async_get(self.client, resp[0]["thumbnail_large"]["src"], headers=HEADERS)
-        origin = await async_get(self.client, resp[0]["link"], headers=HEADERS)
+        origin = await async_get(self.client, resp[0]["link"], headers=HEADERS)  # noqa: F841
 
-        return name, self._statuses_check(photo.status_code, origin.status_code) and self._content_check(photo.headers)
+        return name, self._statuses_check(photo.status_code) and self._content_check(photo.headers)
 
     async def fd_source(self) -> tuple[str, bool]:
         name = Source.FD

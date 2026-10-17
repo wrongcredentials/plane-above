@@ -20,14 +20,15 @@ from .static import (
 
 class FlightRoute:
     @staticmethod
-    async def _get_airport_details(_client: httpx.AsyncClient, iata: str) -> Airport:
+    async def _get_airport_details(_client: httpx.AsyncClient, iata: str, user_agent: str) -> Airport:
         result = await async_get(_client, urljoin(AIRPORT_DETAILS_HX_SOURCE_URL, iata))
         name = result.json_data.get("airport") or ""
         country_code = result.json_data.get("country_code") or ""
         if name and country_code:
             return Airport(iata=iata, name=name, country_code=country_code)
 
-        result = await async_get(_client, AIRPORT_DETAILS_AD_SOURCE_URL, params=dict(iata=iata))
+        headers = {"User-Agent": user_agent} if user_agent else {}
+        result = await async_get(_client, AIRPORT_DETAILS_AD_SOURCE_URL, headers=headers, params=dict(iata=iata))
         return Airport(
             iata=iata,
             name=result.json_data.get("name") or "Unknown airport",
@@ -42,11 +43,12 @@ class FlightRoute:
         departure_iata: str,
         destination_iata: str,
         stops_iata: list[str],
+        user_agent: str,
     ) -> Flight:
         departure, destination, *stops = await asyncio.gather(
-            cls._get_airport_details(_client, departure_iata),
-            cls._get_airport_details(_client, destination_iata),
-            *[cls._get_airport_details(_client, stop_iata) for stop_iata in stops_iata],
+            cls._get_airport_details(_client, departure_iata, user_agent),
+            cls._get_airport_details(_client, destination_iata, user_agent),
+            *[cls._get_airport_details(_client, stop_iata, user_agent) for stop_iata in stops_iata],
         )
         return Flight(callsign=callsign, departure=departure, destination=destination, stops=stops)
 
@@ -111,12 +113,17 @@ class FlightRoute:
     def _is_hx_route_stale(last_update: int | None, max_age_years: int = 3) -> bool:
         if last_update is None:
             return True
-        updated_at = datetime.datetime.fromtimestamp(last_update, tz=datetime.timezone.utc)
-        now = datetime.datetime.now(tz=datetime.timezone.utc)
-        return bool(updated_at + relativedelta(years=max_age_years) < now)
+        try:
+            updated_at = datetime.datetime.fromtimestamp(last_update, tz=datetime.timezone.utc)
+            now = datetime.datetime.now(tz=datetime.timezone.utc)
+            return bool(updated_at + relativedelta(years=max_age_years) < now)
+        except (ValueError, TypeError):
+            return True
 
     @classmethod
-    async def get_route(cls, _client: httpx.AsyncClient, callsign: str, sources: Collection[RouteSource]) -> Flight:
+    async def get_route(
+        cls, _client: httpx.AsyncClient, callsign: str, sources: Collection[RouteSource], ps_user_agent: str = ""
+    ) -> Flight:
         tasks: dict[RouteSource, Callable[[], Coroutine[Any, Any, Any]]] = {
             RouteSource.HX: lambda: cls._get_route_from_hx(_client, callsign),
             RouteSource.SB: lambda: cls._get_route_from_sb(_client, callsign),
@@ -141,11 +148,11 @@ class FlightRoute:
 
                 if hx_dep == hx_dest and sb_dep != sb_dest:
                     return await cls._parse_flight_from_sb(callsign, sb_response)
-                return await cls._build_flight_from_hx(_client, callsign, hx_dep, hx_dest, hx_stops)
+                return await cls._build_flight_from_hx(_client, callsign, hx_dep, hx_dest, hx_stops, ps_user_agent)
 
             if hx_route:
                 hx_dep, hx_dest, hx_stops, _ = hx_route
-                return await cls._build_flight_from_hx(_client, callsign, hx_dep, hx_dest, hx_stops)
+                return await cls._build_flight_from_hx(_client, callsign, hx_dep, hx_dest, hx_stops, ps_user_agent)
 
             if sb_route:
                 *_, sb_response = sb_route

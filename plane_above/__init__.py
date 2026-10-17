@@ -17,4 +17,4 @@ def __getattr__(name: str) -> Any:  # pragma: no cover
 
 
 __all__ = ["Above", "Aircraft", "Airport", "Flight", "Photo", "PhotoSource", "PlaneAbove", "RouteSource", "State"]
-__version__ = "0.3.0"
+__version__ = "0.4.0-rc"

@@ -251,6 +251,23 @@ async def test_hx_route_source_invalid(async_client: httpx.AsyncClient, httpx_mo
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "_hx_resp",
+    [
+        FlightMocks.HX_ROUTE_STALE_INV_RESP_200,
+        FlightMocks.HX_ROUTE_STALE_NONE_RESP_200,
+        FlightMocks.HX_ROUTE_STALE_RESP_200,
+    ],
+)
+async def test_hx_route_source_stale(_hx_resp, async_client: httpx.AsyncClient, httpx_mock: HTTPXMock):
+    httpx_mock.add_response(url=FlightMocks.HX_ROUTE_URL, **_hx_resp)
+    httpx_mock.add_response(url=FlightMocks.SB_ROUTE_URL, **FlightMocks.SB_ROUTE_RESP_200)
+
+    route = await FlightRoute.get_route(async_client, FLIGHT_CALLSIGN, (RouteSource.SB, RouteSource.HX))
+    assert route == ROUTE_SB
+
+
+@pytest.mark.asyncio
 async def test_hx_route_source_unavailable_with_sb_setup(async_client: httpx.AsyncClient, httpx_mock: HTTPXMock):
     httpx_mock.add_response(url=FlightMocks.HX_ROUTE_URL, **FlightMocks.HX_ROUTE_RESP_502)
     httpx_mock.add_response(url=FlightMocks.SB_ROUTE_URL, **FlightMocks.SB_ROUTE_RESP_200)

@@ -74,6 +74,9 @@ class FlightMocks:
     HX_ROUTE_RESP_404 = {"status_code": 404, "json": {"status": "404", "error": "Route not found."}, "headers": HEADER_JSON}
     HX_ROUTE_RESP_502 = {"status_code": 502, "json": {}}
     HX_ROUTE_VAR_RESP_200 = {"status_code": 200, "json": {"flight": "VJT750", "route": "Varies", "updatetime": 1747593022}, "headers": HEADER_JSON}
+    HX_ROUTE_STALE_INV_RESP_200 = {"status_code": 200, "json": {"flight": "VJT750", "route": "AMS-VIE", "updatetime": "updatetime"}, "headers": HEADER_JSON}
+    HX_ROUTE_STALE_NONE_RESP_200 = {"status_code": 200, "json": {"flight": "VJT750", "route": "AMS-VIE", "updatetime": None}, "headers": HEADER_JSON}
+    HX_ROUTE_STALE_RESP_200 = {"status_code": 200, "json": {"flight": "VJT750", "route": "AMS-VIE", "updatetime": 971797328}, "headers": HEADER_JSON}
     HX_ROUTE_MP_RESP_200 = {"status_code": 200, "json": {"flight": "UAE192", "route": f"{AIRPORT_DEPARTURE_IATA}-{AIRPORT_MIDPOINT_IATA}-{AIRPORT_DESTINATION_IATA}", "updatetime": 1820221943}, "headers": HEADER_JSON}
     HX_ROUTE_AS_SB_RESP_200 = {"status_code": 200, "json": {"flight": "JNA66", "route": "CRK-PUS", "updatetime": 1536225143}, "headers": HEADER_JSON}
     HX_ROUTE_ROUND_RESP_200 = {"status_code": 200, "json": {"flight": "QTR3E", "route": "DOH-DUB-DOH", "updatetime": 1820221943}, "headers": HEADER_JSON}

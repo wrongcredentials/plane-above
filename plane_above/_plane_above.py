@@ -79,7 +79,7 @@ class PlaneAbove:
                     self._photo_sources,
                     self._ps_user_agent,
                 ),
-                FlightRoute.get_route(client, f_object.callsign, self._route_sources),
+                FlightRoute.get_route(client, f_object.callsign, self._route_sources, self._ps_user_agent),
             )
             return aircraft, flight, f_object.state
 

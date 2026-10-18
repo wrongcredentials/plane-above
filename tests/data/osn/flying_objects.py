@@ -139,7 +139,7 @@ UNKNOWN = [
 NO_CALLSIGN = [
     [
         "44e697",
-        "",
+        None,
         "Belgium",
         1686484466,
         1686484466,

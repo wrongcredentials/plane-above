@@ -26,9 +26,9 @@ PHOTO_EMPTY = Photo(image_url="", origin_url="", photographer="")
 
 
 @pytest.mark.asyncio
-async def test_ad_photo_source_ok(async_client: httpx.AsyncClient, httpx_mock: HTTPXMock):
+async def test_ad_photo_source_ok(async_client: httpx.AsyncClient, httpx_mock: HTTPXMock, ps_user_agent: str):
     httpx_mock.add_response(url=PhotoMocks.AD_PHOTO_URL, **PhotoMocks.AD_PHOTO_RESP_200)
-    photo = await AircraftPhoto._get_photo_from_ad(async_client, AIRCRAFT_ICAO, AIRCRAFT_REG)
+    photo = await AircraftPhoto._get_photo_from_ad(async_client, AIRCRAFT_ICAO, AIRCRAFT_REG, ps_user_agent)
     assert photo == PHOTO_AD
 
 

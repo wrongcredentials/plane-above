@@ -116,10 +116,11 @@ async def test_hx_aircraft_source_empty(async_client: httpx.AsyncClient, httpx_m
 
 
 @pytest.mark.asyncio
-async def test_fd_aircraft_source_empty(async_client: httpx.AsyncClient, httpx_mock: HTTPXMock):
+@pytest.mark.parametrize("_fd_resp", [AircraftMocks.FD_AIRCRAFT_RESP_404, AircraftMocks.FD_AIRCRAFT_BAD_RESP_200])
+async def test_fd_aircraft_source_empty(_fd_resp, async_client: httpx.AsyncClient, httpx_mock: HTTPXMock):
     httpx_mock.add_response(url=AircraftMocks.SB_AIRCRAFT_URL, **AircraftMocks.SB_AIRCRAFT_RESP_200)
     httpx_mock.add_response(url=AircraftMocks.HX_AIRCRAFT_URL, **AircraftMocks.HX_AIRCRAFT_RESP_200)
-    httpx_mock.add_response(url=AircraftMocks.FD_AIRCRAFT_URL, **AircraftMocks.FD_AIRCRAFT_RESP_404)
+    httpx_mock.add_response(url=AircraftMocks.FD_AIRCRAFT_URL, **_fd_resp)
 
     aircraft = await AircraftDetails.get_details(async_client, AIRCRAFT_ICAO, AIRCRAFT_COUNTRY, sources=())
 

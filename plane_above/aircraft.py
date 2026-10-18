@@ -1,8 +1,9 @@
 import asyncio
-from datetime import date, datetime
+import datetime
+from typing import Any
 from collections import ChainMap
 from urllib.parse import urljoin
-from collections.abc import Collection
+from collections.abc import Callable, Coroutine, Collection
 
 import httpx
 from lxml import html
@@ -24,7 +25,7 @@ from .static import (
 
 class AircraftDetails:
     @staticmethod
-    def _parse_fd_source(html_text: str) -> dict:
+    def _parse_fd_source(html_text: str) -> dict[str, str | None]:
         if not html_text:
             return {}
         tree = html.fromstring(html_text)
@@ -59,7 +60,7 @@ class AircraftDetails:
         }
 
     @staticmethod
-    def _parse_sb_source(result: HttpResult) -> dict:
+    def _parse_sb_source(result: HttpResult) -> dict[str, str | None]:
         if result.status_code == httpx.codes.NOT_FOUND or not result.json_data:
             return {}
 
@@ -87,7 +88,7 @@ class AircraftDetails:
             )
         )
 
-        def pick_from(fields: tuple) -> str:
+        def pick_from(fields: tuple[str, str, str]) -> str:
             return values[0] if (values := [v for f in fields if (v := data.get(f))]) else ""
 
         def get_age_from(year_built: str | None) -> float:
@@ -95,7 +96,10 @@ class AircraftDetails:
                 return 0.0
 
             try:
-                relative_age = relativedelta(date.today(), datetime.strptime(year_built, "%Y"))
+                relative_age = relativedelta(
+                    datetime.datetime.now(tz=datetime.timezone.utc).date(),
+                    datetime.datetime.strptime(year_built, "%Y").replace(tzinfo=datetime.timezone.utc).date(),
+                )
                 age = round(relative_age.years + relative_age.months / 12.0, ndigits=1)
                 return age if age > 0 else 0.0
 
@@ -107,7 +111,7 @@ class AircraftDetails:
             registration=pick_from(("Registration", "registration", "fd_registration")),
             manufacturer=pick_from(("Manufacturer", "manufacturer", "fd_manufacturer")),
             model=pick_from(("Type", "type", "fd_model")),
-            type_code=pick_from(("ICAOTypeCode", "icao_type")),  # TODO: add from fd source
+            type_code=pick_from(("ICAOTypeCode", "icao_type", "")),  # TODO: add from fd source
             operator=pick_from(("RegisteredOwners", "registered_owner", "fd_owner")),
         )
         fd_photo = Photo(
@@ -119,9 +123,9 @@ class AircraftDetails:
             origin_url="",  # FIXME sb source returns broken url in 'url_photo'
         )
 
-        if fd_photo.has_urls:
+        if fd_photo._has_urls:
             photos = [fd_photo]
-        elif sb_photo.has_urls:
+        elif sb_photo._has_urls:
             photos = [sb_photo]
         elif not sources:
             photos = [Photo()]
@@ -147,7 +151,7 @@ class AircraftPhoto:
 
     @staticmethod
     async def _get_photo_from_ps(_client: httpx.AsyncClient, by: str, item: str, user_agent: str) -> Photo | None:
-        if not user_agent:
+        if not user_agent:  # pragma: no cover
             log.warning(" ✈ No User-Agent detected; Planespotters.net requires a unique and descriptive value")
             return None
 
@@ -175,8 +179,13 @@ class AircraftPhoto:
         return urljoin(AIRCRAFT_PHOTO_AD_STATIC_URL, filename)
 
     @classmethod
-    async def _get_photo_from_ad(cls, _client: httpx.AsyncClient, icao24: str, registration: str) -> Photo | None:
-        result = await async_get(_client, AIRCRAFT_PHOTO_AD_SOURCE_URL, params=dict(m=icao24, r=registration))
+    async def _get_photo_from_ad(
+        cls, _client: httpx.AsyncClient, icao24: str, registration: str, user_agent: str
+    ) -> Photo | None:
+        headers = {"User-Agent": user_agent} if user_agent else {}
+        result = await async_get(
+            _client, AIRCRAFT_PHOTO_AD_SOURCE_URL, headers=headers, params=dict(m=icao24, r=registration)
+        )
         if photos := result.json_data.get("data"):
             photo = photos[0]
             return Photo(
@@ -195,9 +204,9 @@ class AircraftPhoto:
         sources: Collection[PhotoSource],
         ps_user_agent: str,
     ) -> list[Photo]:
-        tasks: dict[PhotoSource, list] = {
+        tasks: dict[PhotoSource, list[Callable[[], Coroutine[Any, Any, Photo | None]]]] = {
             PhotoSource.HX: [lambda: cls._get_photo_from_hx(_client, icao24)],
-            PhotoSource.AD: [lambda: cls._get_photo_from_ad(_client, icao24, registration)],
+            PhotoSource.AD: [lambda: cls._get_photo_from_ad(_client, icao24, registration, ps_user_agent)],
             PhotoSource.PS: [
                 lambda: cls._get_photo_from_ps(_client, "hex", icao24, ps_user_agent),
                 lambda: cls._get_photo_from_ps(_client, "reg", registration, ps_user_agent),
@@ -205,5 +214,7 @@ class AircraftPhoto:
         }
 
         results = await asyncio.gather(*[task() for source in sources for task in tasks.get(source, [])])
-        photos: dict[str, Photo] = {photo.image_url: photo for photo in results if photo is not None and photo.has_urls}
+        photos: dict[str, Photo] = {
+            photo.image_url: photo for photo in results if photo is not None and photo._has_urls
+        }
         return list(photos.values()) or [Photo()]

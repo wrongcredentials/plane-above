@@ -4,6 +4,8 @@ from dataclasses import dataclass
 
 import country_converter
 
+from .static import OSNStateVectorType
+
 
 @dataclass(frozen=True)
 class Photo:
@@ -12,8 +14,13 @@ class Photo:
     photographer: str = ""
 
     @property
-    def has_urls(self) -> bool:
+    def _has_urls(self) -> bool:
         return bool(self.image_url and self.origin_url)
+
+    @property
+    def has_urls(self) -> bool:  # pragma: no cover
+        warnings.warn("'has_urls' is internal and will be removed in v1.0.0", DeprecationWarning, stacklevel=2)
+        return self._has_urls
 
 
 @dataclass(frozen=True)
@@ -62,11 +69,11 @@ class FlyingObject:
 
 
 class Spotted(NamedTuple):
-    objects_raw: list
+    objects_raw: list[OSNStateVectorType]
     objects_filtered: list[FlyingObject]
     success: bool
     how_many: int
-    errors: list
+    errors: list[tuple[str, str]]
 
 
 class Above(NamedTuple):

@@ -49,10 +49,9 @@ dev = [
     "pytest-asyncio>=1.4.0,<1.5.0",
     "pytest-httpx>=0.36.2,<0.37.0",
     "pytest-cov>=7.1.0,<7.2.0",
-    "validators>=0.35.0",
     "ruff>=0.16.0",
     "mypy>=2.3.0",
-    "pre-commit>=4.6.1",
+    "prek>=0.4.14",
 ]
 
 [tool.setuptools.dynamic]
@@ -66,30 +65,16 @@ quote-style = "double"
 exclude = ["tests/__init__.py"]
 
 [tool.ruff.lint]
-select = [
-    "E",  # pycodestyle errors
-    "W",  # pycodestyle warnings
-    "F",  # pyflakes
-    "I",  # isort
-    "N",  # pep8-naming
-    "B",  # flake8-bugbear
-    "A",  # flake8-builtins
-    "C4",  # flake8-comprehensions
-    "PT",  # flake8-pytest-style
-    "UP",  # pyupgrade
-    "ERA",  # eradicate
-    "PL",  # pylint
-    "FAST",  # fastapi
-    "RUF",  # ruff specific rules
-]
 ignore = [
-    "PLR0911",  # Too many return statements
-    "PLR0913",  # Too many arguments in function definition
     "PLR2004",  # Magic value used in comparison
 ]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/__init__.py" = ["E501", "RUF012"]
+
+[tool.ruff.lint.pylint]
+max-args = 10
+max-returns = 8
 
 [tool.ruff.lint.flake8-comprehensions]
 allow-dict-calls-with-keyword-arguments = true
@@ -98,7 +83,7 @@ allow-dict-calls-with-keyword-arguments = true
 length-sort = true
 
 [tool.pytest.ini_options]
-addopts = "-vv --cov --cov-report term-missing --cov-fail-under=85"
+addopts = "-vv --cov --cov-report term-missing --cov-fail-under=90"
 asyncio_default_fixture_loop_scope = "session"
 testpaths = ["tests"]
 
@@ -112,7 +97,6 @@ python_version = "3.10"
 strict = true
 warn_unreachable = true
 ignore_missing_imports = true
-disallow_any_generics = false
 
 [tool.markdownlint-cli2]
 fix = true

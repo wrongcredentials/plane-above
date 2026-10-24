@@ -151,7 +151,7 @@ class Aircraft:
     registration: str = ""
     manufacturer: str = ""
     model: str = ""
-    type_code: str = ""  # ICAO type code.
+    type_code: str = ""  # ICAO type code (A35K, B763…).
     operator: str = ""
 ```
 
@@ -296,7 +296,7 @@ unlawfully or in any way that could damage, disable, or impair the underlying se
   [hexdb.io](https://hexdb.io/)
 * Aircraft data; route and airport details:
   [adsbdb.com](https://www.adsbdb.com/)
-* Aircraft photos; airport details:
+* Aircraft data and photos; airport details:
   [airport-data.com](https://airport-data.com/)
 * Aircraft data: [flightdb.net](https://flightdb.net/)
 * Aircraft photos: [planespotters.net](https://www.planespotters.net/)
@@ -306,8 +306,8 @@ unlawfully or in any way that could damage, disable, or impair the underlying se
 > The flight route data is the work of David Taylor, Edinburgh and Jim Mason, Glasgow, and may not be copied,
 > published, or incorporated into other databases without the explicit permission of David J Taylor, Edinburgh.
 
-This notice applies specifically to flight route data obtained via [adsbdb](https://www.adsbdb.com/) (_excluded by default and requires
-[manual enabling](#sources-setup) as `RouteSources.SB`_), and is reproduced here for transparency and attribution purposes only. It does not constitute
+This notice applies specifically to flight route data obtained via [adsbdb](https://www.adsbdb.com/) (excluded by default and requires
+[manual enabling](#sources-setup) as `RouteSource.SB`), and is reproduced here for transparency and attribution purposes only. It does not constitute
 permission, and no such permission is granted or implied by this project.
 
 ### Photo data notice

@@ -2,7 +2,7 @@ import pytest
 from pytest_httpx import HTTPXMock
 
 from tests import PhotoMocks, FlightMocks, AircraftMocks
-from tests.data import AIRCRAFT_ICAO, FLIGHT_CALLSIGN, AIRCRAFT_COUNTRY
+from tests.data import AIRCRAFT_AGE, AIRCRAFT_ICAO, FLIGHT_CALLSIGN, AIRCRAFT_COUNTRY
 from plane_above.flight import FlightRoute
 from plane_above.models import Photo, State, Flight, Airport, Aircraft, FlyingObject
 from plane_above.aircraft import AircraftDetails
@@ -31,6 +31,7 @@ def test_sync_fetch(plane_above_mock, httpx_mock: HTTPXMock):
     httpx_mock.add_response(url=AircraftMocks.SB_AIRCRAFT_URL, **AircraftMocks.SB_AIRCRAFT_RESP_200)
     httpx_mock.add_response(url=AircraftMocks.HX_AIRCRAFT_URL, **AircraftMocks.HX_AIRCRAFT_RESP_200)
     httpx_mock.add_response(url=AircraftMocks.FD_AIRCRAFT_URL, **AircraftMocks.FD_AIRCRAFT_RESP_200)
+    httpx_mock.add_response(url=AircraftMocks.AD_AIRCRAFT_URL, **AircraftMocks.AD_AIRCRAFT_RESP_200)
 
     httpx_mock.add_response(url=FlightMocks.HX_ROUTE_URL, **FlightMocks.HX_ROUTE_RESP_200)
     httpx_mock.add_response(url=FlightMocks.HX_DEP_AIRPORT_URL, **FlightMocks.HX_AIRPORT_RESP_200)
@@ -39,7 +40,7 @@ def test_sync_fetch(plane_above_mock, httpx_mock: HTTPXMock):
     for above in plane_above_mock.fetch():
         assert above.aircraft.icao24 == AIRCRAFT_ICAO
         assert above.aircraft.country == AIRCRAFT_COUNTRY
-        assert above.aircraft.age >= 28.6
+        assert above.aircraft.age >= AIRCRAFT_AGE
         assert above.aircraft.registration == "A7-BCA"
         assert above.aircraft.manufacturer == "Boeing"
         assert above.aircraft.model == "737-8 MAX"
@@ -88,6 +89,7 @@ async def test_async_fetch(plane_above_mock, httpx_mock: HTTPXMock):
     httpx_mock.add_response(url=AircraftMocks.SB_AIRCRAFT_URL, **AircraftMocks.SB_AIRCRAFT_RESP_200)
     httpx_mock.add_response(url=AircraftMocks.HX_AIRCRAFT_URL, **AircraftMocks.HX_AIRCRAFT_RESP_200)
     httpx_mock.add_response(url=AircraftMocks.FD_AIRCRAFT_URL, **AircraftMocks.FD_AIRCRAFT_RESP_404)
+    httpx_mock.add_response(url=AircraftMocks.AD_AIRCRAFT_URL, **AircraftMocks.AD_AIRCRAFT_RESP_404)
 
     httpx_mock.add_response(url=PhotoMocks.HX_PHOTO_URL, **PhotoMocks.HX_PHOTO_RESP_200)
 

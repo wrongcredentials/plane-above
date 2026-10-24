@@ -10,7 +10,7 @@ class Source(str, Enum):
     FD = "flightdb.net"  # https://www.flightdb.net/faq.php
 
     def __str__(self) -> str:
-        return self.value
+        return self.value  # pragma: no cover
 
 
 class RouteSource(Enum):

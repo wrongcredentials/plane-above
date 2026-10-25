@@ -82,7 +82,12 @@ class AircraftDetails:
             async_get(_client, AIRCRAFT_DETAILS_FD_SOURCE_URL, params=dict(modes=icao24)),
             async_get(_client, urljoin(AIRCRAFT_DETAILS_HX_SOURCE_URL, icao24)),
             async_get(_client, urljoin(AIRCRAFT_DETAILS_SB_SOURCE_URL, icao24)),
-            async_get(_client, AIRCRAFT_DETAILS_AD_SOURCE_URL, params=dict(m=icao24)),
+            async_get(
+                _client,
+                AIRCRAFT_DETAILS_AD_SOURCE_URL,
+                headers={"User-Agent": ps_user_agent} if ps_user_agent else {},
+                params=dict(m=icao24),
+            ),
         )
         data = dict(
             ChainMap(

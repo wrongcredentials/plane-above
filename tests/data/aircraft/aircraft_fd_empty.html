@@ -1,18 +1,26 @@
-<table class="table">
-  <tbody>
-    <tr>
-      <td>
-        <a href="">
-          <img src="img/nophoto.png">
-        </a>
-      </td>
-      <th scope="row"></th>
-      <td></td>
-      <td> (<a href="type.php?type="></a>)</td>
-      <td></td>
-      <td> (<a href="fleet.php?fleet="></a>)</td>
-      <td></td>
-      <td>None</td>
-    </tr>
-  </tbody>
-</table>
+<section class="content-wrap aircraft-page">
+  <div class="stats-grid">
+    <article class="stat-card"><span class="stat-icon cyan"><svg><use href="#i-tag"/></svg></span><div><small>Registration</small><strong></strong><em></em></div></article>        <article class="stat-card"><span class="stat-icon violet"><svg><use href="#i-radio"/></svg></span><div><small>Mode S</small><strong>8960B4</strong><em></em></div></article>        <article class="stat-card"><span class="stat-icon amber"><svg><use href="#i-plane"/></svg></span><div><small>ICAO type</small><strong><a href="/type.php?type=">4</a></strong><em></em></div></article>        <article class="stat-card"><span class="stat-icon green"><svg><use href="#i-route"/></svg></span><div><small>Flights recorded</small><strong>144</strong><em></em></div></article>      </div>
+
+  <div class="aircraft-layout">
+    <aside class="panel photo-panel">
+      <div class="panel-head"><div><span class="eyebrow">PHOTO</span><h2>Image</h2></div></div>
+      <div class="photo-body"><figure class="aircraft-photo"><a href="" target="_blank" rel="noopener"><img src="" alt="Aircraft" loading="lazy"></a><figcaption class="photo-credit">Photo: airport-data.com</figcaption></figure></div>
+    </aside>
+
+    <section class="panel">
+      <div class="panel-head"><div><span class="eyebrow">DETAILS</span><h2>Aircraft data</h2></div></div>
+      <dl class="spec-list">
+        <div><dt>Type</dt><dd> <a class="chip" href="/type.php?type="></a></dd></div>
+        <div><dt>Manufacturer</dt><dd></dd></div>
+        <div><dt>Serial</dt><dd></dd></div>
+        <div><dt>Year built</dt><dd>n/a</dd></div>
+        <div><dt>Owner</dt><dd><a class="chip" href="/fleet.php?fleet=">DUB</a></dd></div>
+        <div><dt>Country</dt><dd><img class="flag" src="https://flagcdn.com/20x15/ae.png" srcset="https://flagcdn.com/40x30/ae.png 2x" width="20" height="15" alt="" loading="lazy">United Arab Emirates</dd></div>
+      </dl>
+      <div class="panel-actions">
+        <a class="cta-button" href="" target="_blank" rel="noopener">Live tracking <svg><use href="#i-arrow"/></svg></a>
+      </div>
+    </section>
+  </div>
+</section>

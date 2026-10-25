@@ -30,37 +30,26 @@ class AircraftDetails:
         if not html_text:
             return {}
         tree = html.fromstring(html_text)
-        row = tree.xpath("//table[contains(@class, 'table')]/tbody/tr[th[@scope='row']][1]")
-        if not row:
+        specs = {
+            row.xpath("string(./dt)").strip(): "".join(row.xpath("./dd/text()")).strip()
+            for row in tree.xpath("//dl[contains(@class, 'spec-list')]/div")
+        }
+        if not specs:
             return {}
 
-        row = row[0]
-        image_url = row.xpath(".//td[1]//img/@src")
-        origin_url = row.xpath(".//td[1]//a/@href")
-        registration = row.xpath("./td[2]/text()")
-        aircraft = row.xpath("./td[3]/text()[normalize-space()][1]")
-        type_code = row.xpath("./td[3]//a[contains(@href, 'type=')]/text()")
-        owner = row.xpath("./td[5]/text()[normalize-space()][1]")
-        year_built = row.xpath("./td[7]/text()")
-
-        aircraft = aircraft[0].strip().rstrip("(").strip()
-        if aircraft:
-            parts = aircraft.split(maxsplit=1)
-            manufacturer = parts[0]
-            model = parts[1] if len(parts) > 1 else None
-        else:
-            manufacturer = model = None
-
-        return {
-            "fd_image_url": image_url[0].strip() if image_url else None,
-            "fd_origin_url": origin_url[0].strip() if origin_url else None,
-            "fd_registration": registration[0].strip() if registration else None,
-            "fd_manufacturer": manufacturer,
-            "fd_model": model,
-            "fd_type_code": type_code[0].strip() if type_code else None,
-            "fd_owner": owner[0].strip().rstrip("(").strip() if owner else None,
-            "fd_year_built": year_built[0].strip() if year_built else None,
+        fd_result = {
+            "fd_image_url": tree.xpath("string(//figure[contains(@class, 'aircraft-photo')]//a/img/@src)"),
+            "fd_origin_url": tree.xpath("string(//figure[contains(@class, 'aircraft-photo')]//a/@href)"),
+            "fd_registration": tree.xpath(
+                "string(//article[contains(@class, 'stat-card')][.//small[normalize-space()='Registration']]//strong)"
+            ),
+            "fd_manufacturer": specs.get("Manufacturer", ""),
+            "fd_model": specs.get("Type", "").removeprefix(specs.get("Manufacturer", "")),
+            "fd_type_code": tree.xpath("string(//dl//a[contains(@href, 'type=')])"),
+            "fd_owner": specs.get("Owner", ""),
+            "fd_year_built": specs.get("Year built", ""),
         }
+        return {key: value.strip() or None for key, value in fd_result.items()}
 
     @staticmethod
     def _parse_sb_source(result: HttpResult) -> dict[str, str | None]:

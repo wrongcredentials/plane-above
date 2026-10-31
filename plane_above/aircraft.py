@@ -49,7 +49,7 @@ class AircraftDetails:
             "fd_owner": specs.get("Owner", ""),
             "fd_year_built": specs.get("Year built", ""),
         }
-        return {key: value.strip() or None for key, value in fd_result.items()}
+        return {key: value.strip() if (value and value != "n/a") else None for key, value in fd_result.items()}
 
     @staticmethod
     def _parse_sb_source(result: HttpResult) -> dict[str, str | None]:

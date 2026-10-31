@@ -9,6 +9,7 @@ ADSB_DB_API_BASE_URL = "https://api.adsbdb.com/v0/"
 
 AIRCRAFT_IN_AREA_SOURCE_URL = urljoin(OPENSKY_API_BASE_URL, "states/all")
 
+AIRCRAFT_DETAILS_AD_SOURCE_URL = urljoin(AIRPORT_DATA_API_BASE_URL, "ac_info.json")
 AIRCRAFT_DETAILS_HX_SOURCE_URL = urljoin(HEX_DB_API_BASE_URL, "aircraft/")
 AIRCRAFT_DETAILS_FD_SOURCE_URL = "https://www.flightdb.net/aircraft.php"
 AIRCRAFT_DETAILS_SB_SOURCE_URL = urljoin(ADSB_DB_API_BASE_URL, "aircraft/")

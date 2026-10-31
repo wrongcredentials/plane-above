@@ -16,6 +16,7 @@ from .static import (
     AIRCRAFT_PHOTO_AD_STATIC_URL,
     AIRCRAFT_PHOTO_HX_SOURCE_URL,
     AIRCRAFT_PHOTO_PS_SOURCE_URL,
+    AIRCRAFT_DETAILS_AD_SOURCE_URL,
     AIRCRAFT_DETAILS_FD_SOURCE_URL,
     AIRCRAFT_DETAILS_HX_SOURCE_URL,
     AIRCRAFT_DETAILS_SB_SOURCE_URL,
@@ -29,35 +30,26 @@ class AircraftDetails:
         if not html_text:
             return {}
         tree = html.fromstring(html_text)
-        row = tree.xpath("//table[contains(@class, 'table')]/tbody/tr[th[@scope='row']][1]")
-        if not row:
+        specs = {
+            row.xpath("string(./dt)").strip(): "".join(row.xpath("./dd/text()")).strip()
+            for row in tree.xpath("//dl[contains(@class, 'spec-list')]/div")
+        }
+        if not specs:
             return {}
 
-        row = row[0]
-        image_url = row.xpath(".//td[1]//img/@src")
-        origin_url = row.xpath(".//td[1]//a/@href")
-        registration = row.xpath("./td[2]/text()")
-        aircraft_type = row.xpath("./td[3]/text()[normalize-space()][1]")
-        owner = row.xpath("./td[5]/text()[normalize-space()][1]")
-        year_built = row.xpath("./td[7]/text()")
-
-        aircraft_type = aircraft_type[0].strip().rstrip("(").strip()
-        if aircraft_type:
-            parts = aircraft_type.split(maxsplit=1)
-            manufacturer = parts[0]
-            model = parts[1] if len(parts) > 1 else None
-        else:
-            manufacturer = model = None
-
-        return {
-            "fd_image_url": image_url[0].strip() if image_url else None,
-            "fd_origin_url": origin_url[0].strip() if origin_url else None,
-            "fd_registration": registration[0].strip() if registration else None,
-            "fd_manufacturer": manufacturer,
-            "fd_model": model,
-            "fd_owner": owner[0].strip().rstrip("(").strip() if owner else None,
-            "fd_year_built": year_built[0].strip() if year_built else None,
+        fd_result = {
+            "fd_image_url": tree.xpath("string(//figure[contains(@class, 'aircraft-photo')]//a/img/@src)"),
+            "fd_origin_url": tree.xpath("string(//figure[contains(@class, 'aircraft-photo')]//a/@href)"),
+            "fd_registration": tree.xpath(
+                "string(//article[contains(@class, 'stat-card')][.//small[normalize-space()='Registration']]//strong)"
+            ),
+            "fd_manufacturer": specs.get("Manufacturer", ""),
+            "fd_model": specs.get("Type", "").removeprefix(specs.get("Manufacturer", "")),
+            "fd_type_code": tree.xpath("string(//dl//a[contains(@href, 'type=')])"),
+            "fd_owner": specs.get("Owner", ""),
+            "fd_year_built": specs.get("Year built", ""),
         }
+        return {key: value.strip() if (value and value != "n/a") else None for key, value in fd_result.items()}
 
     @staticmethod
     def _parse_sb_source(result: HttpResult) -> dict[str, str | None]:
@@ -79,17 +71,24 @@ class AircraftDetails:
             async_get(_client, AIRCRAFT_DETAILS_FD_SOURCE_URL, params=dict(modes=icao24)),
             async_get(_client, urljoin(AIRCRAFT_DETAILS_HX_SOURCE_URL, icao24)),
             async_get(_client, urljoin(AIRCRAFT_DETAILS_SB_SOURCE_URL, icao24)),
+            async_get(
+                _client,
+                AIRCRAFT_DETAILS_AD_SOURCE_URL,
+                headers={"User-Agent": ps_user_agent} if ps_user_agent else {},
+                params=dict(m=icao24),
+            ),
         )
         data = dict(
             ChainMap(
                 cls._parse_fd_source(results[0].data),
                 results[1].json_data,
                 cls._parse_sb_source(results[2]),
+                results[3].json_data,
             )
         )
 
-        def pick_from(fields: tuple[str, str, str]) -> str:
-            return values[0] if (values := [v for f in fields if (v := data.get(f))]) else ""
+        def pick_from(fields: tuple[str, str, str, str]) -> str:
+            return next(filter(None, map(data.get, fields)), "")
 
         def get_age_from(year_built: str | None) -> float:
             if not year_built:
@@ -108,19 +107,19 @@ class AircraftDetails:
                 return 0.0
 
         ac_details: dict[str, str] = dict(
-            registration=pick_from(("Registration", "registration", "fd_registration")),
-            manufacturer=pick_from(("Manufacturer", "manufacturer", "fd_manufacturer")),
-            model=pick_from(("Type", "type", "fd_model")),
-            type_code=pick_from(("ICAOTypeCode", "icao_type", "")),  # TODO: add from fd source
-            operator=pick_from(("RegisteredOwners", "registered_owner", "fd_owner")),
+            registration=pick_from(("Registration", "registration", "fd_registration", "reg")),
+            manufacturer=pick_from(("Manufacturer", "manufacturer", "fd_manufacturer", "")),
+            model=pick_from(("Type", "type", "fd_model", "model")),
+            type_code=pick_from(("ICAOTypeCode", "icao_type", "fd_type_code", "")),
+            operator=pick_from(("RegisteredOwners", "registered_owner", "fd_owner", "")),
         )
         fd_photo = Photo(
             image_url=AircraftPhoto.make_ad_image_url(data.get("fd_image_url")),
             origin_url=data.get("fd_origin_url") or "",
         )
         sb_photo = Photo(
-            image_url=AircraftPhoto.make_ad_image_url(data.get("url_photo_thumbnail")),
-            origin_url="",  # FIXME sb source returns broken url in 'url_photo'
+            image_url=data.get("url_photo") or "",
+            origin_url=data.get("url_photo") or "",  # NOTE: SB source do not provide origin url
         )
 
         if fd_photo._has_urls:

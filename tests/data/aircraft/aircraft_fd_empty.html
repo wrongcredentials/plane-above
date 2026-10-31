@@ -1,18 +1,31 @@
-<table class="table">
-  <tbody>
-    <tr>
-      <td>
-        <a href="">
-          <img src="img/nophoto.png">
-        </a>
-      </td>
-      <th scope="row"></th>
-      <td></td>
-      <td> (<a href="type.php?type="></a>)</td>
-      <td></td>
-      <td> (<a href="fleet.php?fleet="></a>)</td>
-      <td></td>
-      <td>None</td>
-    </tr>
-  </tbody>
-</table>
+<section class="content-wrap aircraft-page">
+  <div class="stats-grid">
+    <article class="stat-card"><span class="stat-icon cyan"><svg><use href="#i-tag"/></svg></span><div><small>Registration</small><strong>n/a</strong><em></em></div></article>        <article class="stat-card"><span class="stat-icon violet"><svg><use href="#i-radio"/></svg></span><div><small>Mode S</small><strong>4BC8E3</strong><em></em></div></article>        <article class="stat-card"><span class="stat-icon amber"><svg><use href="#i-plane"/></svg></span><div><small>ICAO type</small><strong>n/a</strong><em></em></div></article>        <article class="stat-card"><span class="stat-icon green"><svg><use href="#i-route"/></svg></span><div><small>Flights recorded</small><strong>8</strong><em></em></div></article>      </div>
+
+  <div class="aircraft-layout">
+    <aside class="panel photo-panel">
+      <div class="panel-head"><div><span class="eyebrow">PHOTO</span><h2>Image</h2></div></div>
+      <div class="photo-body"><figure class="aircraft-photo"><img src="/img/nophoto.png?v=1792783479" alt="No photo available"></figure></div>
+    </aside>
+
+    <section class="panel">
+      <div class="panel-head"><div><span class="eyebrow">DETAILS</span><h2>Aircraft data</h2></div></div>
+      <dl class="spec-list">
+        <div><dt>Type</dt><dd>n/a</dd></div>
+        <div><dt>Manufacturer</dt><dd>n/a</dd></div>
+        <div><dt>Serial</dt><dd>n/a</dd></div>
+        <div><dt>Year built</dt><dd>unknown</dd></div>
+        <div><dt>Owner</dt><dd>n/a</dd></div>
+        <div><dt>Country</dt><dd>n/a</dd></div>
+      </dl>
+      <div class="panel-actions">
+        <a class="cta-button" href="https://adsb.lol/?icao=4bc8e3" target="_blank" rel="noopener">Live tracking <svg><use href="#i-arrow"/></svg></a>
+      </div>
+    </section>
+  </div>
+
+  <section class="panel flights-panel">
+    <div class="panel-head"><div><span class="eyebrow">HISTORY</span><h2>Recorded flights</h2></div><span class="updated">8 total</span></div>
+    <div class="table-wrap"><table class="data-table"><thead><tr><th scope="col">Start time</th><th scope="col">Callsign</th><th scope="col">Squawk</th><th scope="col">Duration</th></tr></thead><tbody><tr><td>23.10.2026 12:04</td><td><a class="mono" href="/callsign.php?cs=PGT893P">PGT893P</a></td><td><span class="mono">3046</span></td><td>12 min</td></tr><tr><td>23.10.2026 10:28</td><td><span class="muted">–</span></td><td><span class="mono">5605</span></td><td>0 min</td></tr><tr><td>22.10.2026 21:59</td><td><a class="mono" href="/callsign.php?cs=PGT34VX">PGT34VX</a></td><td><span class="mono">3001</span></td><td>8 min</td></tr><tr><td>22.10.2026 20:33</td><td><span class="muted">–</span></td><td><span class="mono">7544</span></td><td>0 min</td></tr><tr><td>12.10.2026 14:07</td><td><a class="mono" href="/callsign.php?cs=PGT29TY">PGT29TY</a></td><td><span class="mono">6730</span></td><td>19 min</td></tr><tr><td>12.10.2026 12:26</td><td><a class="mono" href="/callsign.php?cs=PGT93WK">PGT93WK</a></td><td><span class="mono">3551</span></td><td>13 min</td></tr><tr><td>09.10.2026 18:13</td><td><a class="mono" href="/callsign.php?cs=PGT27UP">PGT27UP</a></td><td><span class="mono">7561</span></td><td>28 min</td></tr><tr><td>09.10.2026 15:00</td><td><a class="mono" href="/callsign.php?cs=PGT52GR">PGT52GR</a></td><td><span class="mono">3105</span></td><td>33 min</td></tr></tbody></table></div>              </section>
+
+</section>

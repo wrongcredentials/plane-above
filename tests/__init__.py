@@ -30,6 +30,7 @@ class AircraftMocks:
     SB_AIRCRAFT_URL = urljoin(sources.AIRCRAFT_DETAILS_SB_SOURCE_URL, AIRCRAFT_ICAO)
     HX_AIRCRAFT_URL = urljoin(sources.AIRCRAFT_DETAILS_HX_SOURCE_URL, AIRCRAFT_ICAO)
     FD_AIRCRAFT_URL = urljoin(sources.AIRCRAFT_DETAILS_FD_SOURCE_URL, f"?modes={AIRCRAFT_ICAO}")
+    AD_AIRCRAFT_URL = urljoin(sources.AIRCRAFT_DETAILS_AD_SOURCE_URL, f"?m={AIRCRAFT_ICAO}")
 
     SB_AIRCRAFT_RESP_200 = {"status_code": 200, "json": _load_json("tests/data/aircraft/aircraft_sb.json"), "headers": HEADER_JSON}
     SB_AIRCRAFT_RESP_404 = {"status_code": 404, "json": {"response": "unknown aircraft"}, "headers": HEADER_JSON}
@@ -41,6 +42,9 @@ class AircraftMocks:
     FD_AIRCRAFT_BAD_RESP_200 = {"status_code": 200, "text": _load_html("tests/data/aircraft/aircraft_fd_bad.html"), "headers": HEADER_HTML}
     FD_AIRCRAFT_RESP_404 = {"status_code": 200, "text": _load_html("tests/data/aircraft/aircraft_fd_empty.html"), "headers": HEADER_HTML}
     FD_AIRCRAFT_RESP_502 = {"status_code": 502, "text": ""}
+    AD_AIRCRAFT_RESP_200 = {"status_code": 200, "json": _load_json("tests/data/aircraft/aircraft_ad.json"), "headers": HEADER_JSON}
+    AD_AIRCRAFT_RESP_404 = {"status_code": 404, "json": {"status": 404, "error": "Aircraft not found."}, "headers": HEADER_JSON}
+    AD_AIRCRAFT_RESP_502 = {"status_code": 502, "json": {}}
 
 
 class PhotoMocks:

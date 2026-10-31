@@ -4,18 +4,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-10-31
+
+### Added
+
+- Fourth source to retrieve aircraft details
+
+### Fixed
+
+- Retrieving of `.photo.origin_url` from [adsbdb.com](https://github.com/mrjackwills/adsbdb/issues/92)
+- Parsing of aircraft details from `flightdb.net`
+
 ## [0.4.0] - 2026-10-18
 
 ### Changed
 
-- Route lookup now queries all enabled providers concurrently and picks the best result
-- Reduced the number of unnecessary API calls during route lookup
+- Route lookup now queries all enabled providers concurrently and picks optimal result
 - Routes with identical departure and destination may now be discarded by internal validation
+- Reduced the number of unnecessary API calls during route lookup
+- Requests to `airport-data.com` now include provided User-Agent header to avoid `HTTP 403`
 
 ### Fixed
 
 - Parsing error when a flight has an empty callsign
-- airport-data.com requests now include the User-Agent header (if provided), as the source may otherwise return HTTP 403
 
 ## [0.3.0] - 2026-08-19
 
@@ -69,6 +80,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release
 
+[0.5.0]: https://github.com/wrongcredentials/plane-above/releases/tag/v0.5.0
+[0.4.0]: https://github.com/wrongcredentials/plane-above/releases/tag/v0.4.0
 [0.3.0]: https://github.com/wrongcredentials/plane-above/releases/tag/v0.3.0
 [0.2.0]: https://github.com/wrongcredentials/plane-above/releases/tag/v0.2.0
 [0.1.1]: https://github.com/wrongcredentials/plane-above/releases/tag/v0.1.1

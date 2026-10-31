@@ -3,7 +3,7 @@ import pytest
 from pytest_httpx import HTTPXMock
 
 from tests import AircraftMocks
-from tests.data import AIRCRAFT_ICAO, AIRCRAFT_COUNTRY
+from tests.data import AIRCRAFT_AGE, AIRCRAFT_ICAO, AIRCRAFT_COUNTRY
 from plane_above.aircraft import Photo, Aircraft, AircraftDetails
 
 
@@ -12,9 +12,9 @@ async def test_all_aircraft_sources_ok(async_client: httpx.AsyncClient, httpx_mo
     httpx_mock.add_response(url=AircraftMocks.SB_AIRCRAFT_URL, **AircraftMocks.SB_AIRCRAFT_RESP_200)
     httpx_mock.add_response(url=AircraftMocks.HX_AIRCRAFT_URL, **AircraftMocks.HX_AIRCRAFT_RESP_200)
     httpx_mock.add_response(url=AircraftMocks.FD_AIRCRAFT_URL, **AircraftMocks.FD_AIRCRAFT_RESP_200)
+    httpx_mock.add_response(url=AircraftMocks.AD_AIRCRAFT_URL, **AircraftMocks.AD_AIRCRAFT_RESP_200)
 
     aircraft = await AircraftDetails.get_details(async_client, AIRCRAFT_ICAO, AIRCRAFT_COUNTRY, sources=())
-
     assert aircraft.icao24 == AIRCRAFT_ICAO
     assert aircraft.registration == "A7-BCA"
     assert aircraft.manufacturer == "Boeing"
@@ -22,7 +22,7 @@ async def test_all_aircraft_sources_ok(async_client: httpx.AsyncClient, httpx_mo
     assert aircraft.type_code == "B788"
     assert aircraft.operator == "Qatar Airways"
     assert aircraft.country == AIRCRAFT_COUNTRY
-    assert aircraft.age >= 28.5
+    assert aircraft.age >= AIRCRAFT_AGE
     assert aircraft.photos[0].image_url == "https://image.airport-data.com/aircraft/001868532.jpg"
     assert aircraft.photos[0].origin_url == "https://airport-data.com/aircraft/photo/001868532"
     assert aircraft.photos[0].photographer == ""
@@ -33,6 +33,7 @@ async def test_all_aircraft_sources_empty(async_client: httpx.AsyncClient, httpx
     httpx_mock.add_response(url=AircraftMocks.SB_AIRCRAFT_URL, **AircraftMocks.SB_AIRCRAFT_RESP_404)
     httpx_mock.add_response(url=AircraftMocks.HX_AIRCRAFT_URL, **AircraftMocks.HX_AIRCRAFT_RESP_404)
     httpx_mock.add_response(url=AircraftMocks.FD_AIRCRAFT_URL, **AircraftMocks.FD_AIRCRAFT_RESP_404)
+    httpx_mock.add_response(url=AircraftMocks.AD_AIRCRAFT_URL, **AircraftMocks.AD_AIRCRAFT_RESP_404)
 
     aircraft = await AircraftDetails.get_details(async_client, AIRCRAFT_ICAO, AIRCRAFT_COUNTRY, sources=())
 
@@ -57,6 +58,7 @@ async def test_all_aircraft_sources_unavailable(
     httpx_mock.add_response(url=AircraftMocks.SB_AIRCRAFT_URL, **AircraftMocks.SB_AIRCRAFT_RESP_502)
     httpx_mock.add_response(url=AircraftMocks.HX_AIRCRAFT_URL, **AircraftMocks.HX_AIRCRAFT_RESP_502)
     httpx_mock.add_response(url=AircraftMocks.FD_AIRCRAFT_URL, **AircraftMocks.FD_AIRCRAFT_RESP_502)
+    httpx_mock.add_response(url=AircraftMocks.AD_AIRCRAFT_URL, **AircraftMocks.AD_AIRCRAFT_RESP_502)
 
     aircraft = await AircraftDetails.get_details(async_client, AIRCRAFT_ICAO, country="", sources=())
 
@@ -78,6 +80,7 @@ async def test_sb_aircraft_source_empty(async_client: httpx.AsyncClient, httpx_m
     httpx_mock.add_response(url=AircraftMocks.SB_AIRCRAFT_URL, **AircraftMocks.SB_AIRCRAFT_RESP_404)
     httpx_mock.add_response(url=AircraftMocks.HX_AIRCRAFT_URL, **AircraftMocks.HX_AIRCRAFT_RESP_200)
     httpx_mock.add_response(url=AircraftMocks.FD_AIRCRAFT_URL, **AircraftMocks.FD_AIRCRAFT_RESP_200)
+    httpx_mock.add_response(url=AircraftMocks.AD_AIRCRAFT_URL, **AircraftMocks.AD_AIRCRAFT_RESP_200)
 
     aircraft = await AircraftDetails.get_details(async_client, AIRCRAFT_ICAO, AIRCRAFT_COUNTRY, sources=())
 
@@ -88,7 +91,7 @@ async def test_sb_aircraft_source_empty(async_client: httpx.AsyncClient, httpx_m
     assert aircraft.type_code == "B788"
     assert aircraft.operator == "Qatar Airways"
     assert aircraft.country == AIRCRAFT_COUNTRY
-    assert aircraft.age >= 28.5
+    assert aircraft.age >= AIRCRAFT_AGE
     assert aircraft.photos[0].image_url == "https://image.airport-data.com/aircraft/001868532.jpg"
     assert aircraft.photos[0].origin_url == "https://airport-data.com/aircraft/photo/001868532"
     assert aircraft.photos[0].photographer == ""
@@ -99,6 +102,7 @@ async def test_hx_aircraft_source_empty(async_client: httpx.AsyncClient, httpx_m
     httpx_mock.add_response(url=AircraftMocks.SB_AIRCRAFT_URL, **AircraftMocks.SB_AIRCRAFT_RESP_200)
     httpx_mock.add_response(url=AircraftMocks.HX_AIRCRAFT_URL, **AircraftMocks.HX_AIRCRAFT_RESP_404)
     httpx_mock.add_response(url=AircraftMocks.FD_AIRCRAFT_URL, **AircraftMocks.FD_AIRCRAFT_RESP_200)
+    httpx_mock.add_response(url=AircraftMocks.AD_AIRCRAFT_URL, **AircraftMocks.AD_AIRCRAFT_RESP_200)
 
     aircraft = await AircraftDetails.get_details(async_client, AIRCRAFT_ICAO, AIRCRAFT_COUNTRY, sources=())
 
@@ -109,7 +113,7 @@ async def test_hx_aircraft_source_empty(async_client: httpx.AsyncClient, httpx_m
     assert aircraft.type_code == "B38M"
     assert aircraft.operator == "Dubai Air Wing"
     assert aircraft.country == AIRCRAFT_COUNTRY
-    assert aircraft.age >= 28.5
+    assert aircraft.age >= AIRCRAFT_AGE
     assert aircraft.photos[0].image_url == "https://image.airport-data.com/aircraft/001868532.jpg"
     assert aircraft.photos[0].origin_url == "https://airport-data.com/aircraft/photo/001868532"
     assert aircraft.photos[0].photographer == ""
@@ -120,6 +124,7 @@ async def test_hx_aircraft_source_empty(async_client: httpx.AsyncClient, httpx_m
 async def test_fd_aircraft_source_empty(_fd_resp, async_client: httpx.AsyncClient, httpx_mock: HTTPXMock):
     httpx_mock.add_response(url=AircraftMocks.SB_AIRCRAFT_URL, **AircraftMocks.SB_AIRCRAFT_RESP_200)
     httpx_mock.add_response(url=AircraftMocks.HX_AIRCRAFT_URL, **AircraftMocks.HX_AIRCRAFT_RESP_200)
+    httpx_mock.add_response(url=AircraftMocks.AD_AIRCRAFT_URL, **AircraftMocks.AD_AIRCRAFT_RESP_200)
     httpx_mock.add_response(url=AircraftMocks.FD_AIRCRAFT_URL, **_fd_resp)
 
     aircraft = await AircraftDetails.get_details(async_client, AIRCRAFT_ICAO, AIRCRAFT_COUNTRY, sources=())
@@ -132,4 +137,24 @@ async def test_fd_aircraft_source_empty(_fd_resp, async_client: httpx.AsyncClien
     assert aircraft.operator == "Qatar Airways"
     assert aircraft.age == 0.0
     assert aircraft.country == AIRCRAFT_COUNTRY
+    assert aircraft.photos == [Photo()]
+
+
+@pytest.mark.asyncio
+async def test_only_ad_aircraft_source_not_empty(async_client: httpx.AsyncClient, httpx_mock: HTTPXMock):
+    httpx_mock.add_response(url=AircraftMocks.SB_AIRCRAFT_URL, **AircraftMocks.SB_AIRCRAFT_RESP_404)
+    httpx_mock.add_response(url=AircraftMocks.HX_AIRCRAFT_URL, **AircraftMocks.HX_AIRCRAFT_RESP_404)
+    httpx_mock.add_response(url=AircraftMocks.FD_AIRCRAFT_URL, **AircraftMocks.FD_AIRCRAFT_RESP_502)
+    httpx_mock.add_response(url=AircraftMocks.AD_AIRCRAFT_URL, **AircraftMocks.AD_AIRCRAFT_RESP_200)
+
+    aircraft = await AircraftDetails.get_details(async_client, AIRCRAFT_ICAO, AIRCRAFT_COUNTRY, sources=())
+
+    assert aircraft.icao24 == AIRCRAFT_ICAO
+    assert aircraft.registration == "ZK-OJB"
+    assert aircraft.manufacturer == ""
+    assert aircraft.model == "2003 Airbus A320-232"
+    assert aircraft.type_code == ""
+    assert aircraft.operator == ""
+    assert aircraft.country == AIRCRAFT_COUNTRY
+    assert aircraft.age == 0.0
     assert aircraft.photos == [Photo()]

@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Missing `airline` field in response could cause `flight` processing error
+- Incorrect `Photo` attributes due to `flightdb.net` photo provider switch (closing [#8](https://github.com/wrongcredentials/plane-above/issues/8))
 
 ## [0.5.0] - 2026-10-31
 
@@ -19,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Retrieving of `.photo.origin_url` from [adsbdb.com](https://github.com/mrjackwills/adsbdb/issues/92)
-- Parsing of aircraft details from `flightdb.net`
+- Parsing of aircraft details from `flightdb.net` (closing [#6](https://github.com/wrongcredentials/plane-above/issues/6))
 
 ## [0.4.0] - 2026-10-18
 

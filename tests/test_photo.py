@@ -77,10 +77,7 @@ async def test_all_photo_sources_empty(async_client: httpx.AsyncClient, httpx_mo
     httpx_mock.add_response(url=PhotoMocks.PS_REG_PHOTO_URL, **PhotoMocks.PS_PHOTO_RESP_404)
 
     photos = await AircraftPhoto.get_photos(
-        async_client,
-        AIRCRAFT_ICAO,
-        AIRCRAFT_REG,
-        (PhotoSource.HX, PhotoSource.AD, PhotoSource.PS),
+        async_client, AIRCRAFT_ICAO, AIRCRAFT_REG, (PhotoSource.HX, PhotoSource.AD, PhotoSource.PS)
     )
     assert photos == [PHOTO_EMPTY]
 
@@ -107,10 +104,7 @@ async def test_hx_photo_source_empty(async_client: httpx.AsyncClient, httpx_mock
     httpx_mock.add_response(url=PhotoMocks.PS_REG_PHOTO_URL, **PhotoMocks.PS_PHOTO_RESP_200)
 
     photos = await AircraftPhoto.get_photos(
-        async_client,
-        AIRCRAFT_ICAO,
-        AIRCRAFT_REG,
-        (PhotoSource.HX, PhotoSource.AD, PhotoSource.PS),
+        async_client, AIRCRAFT_ICAO, AIRCRAFT_REG, (PhotoSource.HX, PhotoSource.AD, PhotoSource.PS)
     )
 
     assert photos == [PHOTO_AD, PHOTO_PS]

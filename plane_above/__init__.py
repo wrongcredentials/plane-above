@@ -1,8 +1,9 @@
 import warnings
 from typing import Any
 
+from .config import Config
 from .models import Above, Photo, State, Flight, Airport, Aircraft
-from .static import PhotoSource, RouteSource
+from .static import DataSource, PhotoSource, RouteSource
 from ._plane_above import PlaneAbove
 
 
@@ -16,5 +17,17 @@ def __getattr__(name: str) -> Any:  # pragma: no cover
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
-__all__ = ["Above", "Aircraft", "Airport", "Flight", "Photo", "PhotoSource", "PlaneAbove", "RouteSource", "State"]
+__all__ = [
+    "Above",
+    "Aircraft",
+    "Airport",
+    "Config",
+    "DataSource",
+    "Flight",
+    "Photo",
+    "PhotoSource",
+    "PlaneAbove",
+    "RouteSource",
+    "State",
+]
 __version__ = "0.5.0"

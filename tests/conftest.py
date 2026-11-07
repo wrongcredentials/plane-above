@@ -13,12 +13,7 @@ def async_client() -> httpx.AsyncClient:
 
 
 @pytest.fixture
-def ps_user_agent() -> str:
-    return os.environ["PS_USER_AGENT"]
-
-
-@pytest.fixture
-def plane_above_mock(request, monkeypatch, ps_user_agent) -> PlaneAbove:
+def plane_above_mock(request, monkeypatch) -> PlaneAbove:
     monkeypatch.setattr(
         "plane_above.osn.OSN._retrieve_objects_in_area",
         lambda area, auth_token, proxy: (request.param, True),
@@ -27,5 +22,5 @@ def plane_above_mock(request, monkeypatch, ps_user_agent) -> PlaneAbove:
         COORDINATES,
         route_sources=(RouteSource.HX,),
         photo_sources=(PhotoSource.HX,),
-        ps_user_agent=ps_user_agent,
+        ps_user_agent=os.environ["USER_AGENT"],
     )

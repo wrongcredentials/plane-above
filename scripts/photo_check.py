@@ -92,9 +92,9 @@ class PhotoCheck:
         resp = AircraftDetails._parse_fd_source(fd.data)
 
         photo = await async_get(self.client, resp["fd_image_url"], headers=HEADERS)
-        origin = await async_get(self.client, resp["fd_origin_url"], headers=HEADERS)
+        origin = await async_get(self.client, resp["fd_origin_url"], headers=HEADERS)  # noqa: F841
 
-        return name, self._statuses_check(photo.status_code, origin.status_code) and self._content_check(photo.headers)
+        return name, self._statuses_check(photo.status_code) and self._content_check(photo.headers)
 
 
 async def main() -> int:

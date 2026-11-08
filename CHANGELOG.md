@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/2.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-11-XX
+
+### Added
+
+- `Config` object for advanced usage of `PlaneAbove`
+- `to_dict()` and `to_json()` methods to `Above` object
+
+### Changed
+
+- `PlaneAbove` settings (such as user-agent, proxy, sources setup, etc.) are now passed via `config` parameter
+- `ps_user_agent` parameter renamed to `user_agent` and is now shared across all requests
+- `osn_proxy` parameter renamed to `proxy_url` and is now shared across selected sources in `proxy_scope`
+
+### Deprecated
+
+> [!IMPORTANT]
+> Deprecated entities emit `DeprecationWarning` and will be removed in **v1.0.0**.
+
+- Passing `route_sources`, `photo_sources`, `ps_user_agent`, `osn_proxy`, `osn_id` and `osn_secret` directly to `PlaneAbove` without `Config` object
+
 ## [0.5.1] - 2026-11-07
 
 ### Fixed
@@ -87,6 +107,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release
 
+[0.6.0]: https://github.com/wrongcredentials/plane-above/releases/tag/v0.6.0
 [0.5.1]: https://github.com/wrongcredentials/plane-above/releases/tag/v0.5.1
 [0.5.0]: https://github.com/wrongcredentials/plane-above/releases/tag/v0.5.0
 [0.4.0]: https://github.com/wrongcredentials/plane-above/releases/tag/v0.4.0

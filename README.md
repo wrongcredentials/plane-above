@@ -208,6 +208,15 @@ class State:
 
 </details>
 
+> [!TIP]
+> Use `to_dict()` or `to_json()` to serialize an `Above` object to a dict or a JSON string:
+>
+> ```pycon
+> >>> for above in pa.fetch():
+> ...     above.to_dict()   # -> dict
+> ...     above.to_json()   # -> str
+> ```
+
 ## Advanced usage
 
 To adjust behavior or apply workarounds you should use a `Config` which can be passed as a parameter when creating

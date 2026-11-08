@@ -1,6 +1,7 @@
+import json
 import warnings
-from typing import NamedTuple
-from dataclasses import dataclass
+from typing import Any, NamedTuple
+from dataclasses import asdict, dataclass
 
 import country_converter
 
@@ -80,6 +81,17 @@ class Above(NamedTuple):
     aircraft: Aircraft
     flight: Flight
     state: State
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "aircraft": asdict(self.aircraft),
+            "flight": asdict(self.flight),
+            "state": asdict(self.state),
+        }
+
+    def to_json(self, **kwargs: Any) -> str:
+        kwargs.setdefault("ensure_ascii", False)
+        return json.dumps(self.to_dict(), **kwargs)
 
     @property
     def route(self) -> Flight:  # pragma: no cover

@@ -126,7 +126,7 @@ class PlaneAbove:
         headers = {"User-Agent": self.config.user_agent} if self.config.user_agent else {}
         mounts = (
             {
-                f"all://{source.value}": httpx.AsyncHTTPTransport(proxy=self.config.proxy_url)
+                f"all://*{source.value}": httpx.AsyncHTTPTransport(proxy=self.config.proxy_url)
                 for source in self.config.proxy_scope
             }
             if self.config.proxy_url and self.config.proxy_scope

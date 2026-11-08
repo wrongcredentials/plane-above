@@ -55,7 +55,7 @@ class FlightRoute:
         departure = response.get("origin", {})
         destination = response.get("destination", {})
         stop = response.get("midpoint", {})
-        airline = response.get("airline", {}).get("name") or Flight.airline
+        airline = (response.get("airline") or {}).get("name") or Flight.airline
         return Flight(
             callsign=callsign,
             departure=Airport(

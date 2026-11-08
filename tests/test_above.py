@@ -32,6 +32,7 @@ def test_sync_fetch(plane_above_mock, httpx_mock: HTTPXMock):
     httpx_mock.add_response(url=AircraftMocks.HX_AIRCRAFT_URL, **AircraftMocks.HX_AIRCRAFT_RESP_200)
     httpx_mock.add_response(url=AircraftMocks.FD_AIRCRAFT_URL, **AircraftMocks.FD_AIRCRAFT_RESP_200)
     httpx_mock.add_response(url=AircraftMocks.AD_AIRCRAFT_URL, **AircraftMocks.AD_AIRCRAFT_RESP_200)
+    httpx_mock.add_response(url=PhotoMocks.HX_PHOTO_URL, **PhotoMocks.HX_PHOTO_RESP_200)
 
     httpx_mock.add_response(url=FlightMocks.HX_ROUTE_URL, **FlightMocks.HX_ROUTE_RESP_200)
     httpx_mock.add_response(url=FlightMocks.HX_DEP_AIRPORT_URL, **FlightMocks.HX_AIRPORT_RESP_200)
@@ -47,8 +48,8 @@ def test_sync_fetch(plane_above_mock, httpx_mock: HTTPXMock):
         assert above.aircraft.type_code == "B788"
         assert len(above.aircraft.photos) == 1
         assert above.aircraft.photos[0]._has_urls is True
-        assert above.aircraft.photos[0].image_url == "https://image.airport-data.com/aircraft/001868532.jpg"
-        assert above.aircraft.photos[0].origin_url == "https://airport-data.com/aircraft/photo/001868532"
+        assert above.aircraft.photos[0].image_url == "https://hexdb.io/static/aircraft-images/PH-BXC.jpg"
+        assert above.aircraft.photos[0].origin_url == "https://hexdb.io/static/aircraft-images/PH-BXC.jpg"
         assert above.aircraft.photos[0].photographer == ""
         assert above.aircraft.operator == "Qatar Airways"
         assert above.flight.callsign == FLIGHT_CALLSIGN

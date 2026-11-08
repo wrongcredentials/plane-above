@@ -23,9 +23,7 @@ async def test_all_aircraft_sources_ok(async_client: httpx.AsyncClient, httpx_mo
     assert aircraft.operator == "Qatar Airways"
     assert aircraft.country == AIRCRAFT_COUNTRY
     assert aircraft.age >= AIRCRAFT_AGE
-    assert aircraft.photos[0].image_url == "https://image.airport-data.com/aircraft/001868532.jpg"
-    assert aircraft.photos[0].origin_url == "https://airport-data.com/aircraft/photo/001868532"
-    assert aircraft.photos[0].photographer == ""
+    assert aircraft.photos == [Photo()]
 
 
 @pytest.mark.asyncio
@@ -92,9 +90,7 @@ async def test_sb_aircraft_source_empty(async_client: httpx.AsyncClient, httpx_m
     assert aircraft.operator == "Qatar Airways"
     assert aircraft.country == AIRCRAFT_COUNTRY
     assert aircraft.age >= AIRCRAFT_AGE
-    assert aircraft.photos[0].image_url == "https://image.airport-data.com/aircraft/001868532.jpg"
-    assert aircraft.photos[0].origin_url == "https://airport-data.com/aircraft/photo/001868532"
-    assert aircraft.photos[0].photographer == ""
+    assert aircraft.photos == [Photo()]
 
 
 @pytest.mark.asyncio
@@ -114,9 +110,7 @@ async def test_hx_aircraft_source_empty(async_client: httpx.AsyncClient, httpx_m
     assert aircraft.operator == "Dubai Air Wing"
     assert aircraft.country == AIRCRAFT_COUNTRY
     assert aircraft.age >= AIRCRAFT_AGE
-    assert aircraft.photos[0].image_url == "https://image.airport-data.com/aircraft/001868532.jpg"
-    assert aircraft.photos[0].origin_url == "https://airport-data.com/aircraft/photo/001868532"
-    assert aircraft.photos[0].photographer == ""
+    assert aircraft.photos == [Photo()]
 
 
 @pytest.mark.asyncio

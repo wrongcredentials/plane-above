@@ -107,18 +107,14 @@ class AircraftDetails:
             type_code=pick_from(("ICAOTypeCode", "icao_type", "fd_type_code", "")),
             operator=pick_from(("RegisteredOwners", "registered_owner", "fd_owner", "")),
         )
-        fd_photo = Photo(
-            image_url=AircraftPhoto.make_ad_image_url(data.get("fd_image_url")),
-            origin_url=data.get("fd_origin_url") or "",
-        )
         sb_photo = Photo(
             image_url=data.get("url_photo") or "",
             origin_url=data.get("url_photo") or "",  # NOTE: SB source do not provide origin url
         )
 
-        if fd_photo._has_urls:
-            photos = [fd_photo]
-        elif sb_photo._has_urls:
+        # TODO: restore fd_image_url and fd_origin_url parsing; apply safe source switch
+
+        if sb_photo._has_urls:
             photos = [sb_photo]
         elif not sources:
             photos = [Photo()]

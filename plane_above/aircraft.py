@@ -65,18 +65,12 @@ class AircraftDetails:
         icao24: str,
         country: str,
         sources: Collection[PhotoSource],
-        ps_user_agent: str = "",
     ) -> Aircraft:
         results = await asyncio.gather(
             async_get(_client, AIRCRAFT_DETAILS_FD_SOURCE_URL, params=dict(modes=icao24)),
             async_get(_client, urljoin(AIRCRAFT_DETAILS_HX_SOURCE_URL, icao24)),
             async_get(_client, urljoin(AIRCRAFT_DETAILS_SB_SOURCE_URL, icao24)),
-            async_get(
-                _client,
-                AIRCRAFT_DETAILS_AD_SOURCE_URL,
-                headers={"User-Agent": ps_user_agent} if ps_user_agent else {},
-                params=dict(m=icao24),
-            ),
+            async_get(_client, AIRCRAFT_DETAILS_AD_SOURCE_URL, params=dict(m=icao24)),
         )
         data = dict(
             ChainMap(
@@ -125,7 +119,7 @@ class AircraftDetails:
         elif not sources:
             photos = [Photo()]
         else:
-            photos = await AircraftPhoto.get_photos(_client, icao24, ac_details["registration"], sources, ps_user_agent)
+            photos = await AircraftPhoto.get_photos(_client, icao24, ac_details["registration"], sources)
 
         return Aircraft(
             icao24=icao24,
@@ -145,16 +139,8 @@ class AircraftPhoto:
         return None
 
     @staticmethod
-    async def _get_photo_from_ps(_client: httpx.AsyncClient, by: str, item: str, user_agent: str) -> Photo | None:
-        if not user_agent:  # pragma: no cover
-            log.warning(" ✈ No User-Agent detected; Planespotters.net requires a unique and descriptive value")
-            return None
-
-        result = await async_get(
-            _client,
-            urljoin(AIRCRAFT_PHOTO_PS_SOURCE_URL, f"{by}/{item}"),
-            headers={"User-Agent": user_agent},
-        )
+    async def _get_photo_from_ps(_client: httpx.AsyncClient, by: str, item: str) -> Photo | None:
+        result = await async_get(_client, urljoin(AIRCRAFT_PHOTO_PS_SOURCE_URL, f"{by}/{item}"))
 
         if photos := result.json_data.get("photos"):
             photo = photos[0]
@@ -174,13 +160,8 @@ class AircraftPhoto:
         return urljoin(AIRCRAFT_PHOTO_AD_STATIC_URL, filename)
 
     @classmethod
-    async def _get_photo_from_ad(
-        cls, _client: httpx.AsyncClient, icao24: str, registration: str, user_agent: str
-    ) -> Photo | None:
-        headers = {"User-Agent": user_agent} if user_agent else {}
-        result = await async_get(
-            _client, AIRCRAFT_PHOTO_AD_SOURCE_URL, headers=headers, params=dict(m=icao24, r=registration)
-        )
+    async def _get_photo_from_ad(cls, _client: httpx.AsyncClient, icao24: str, registration: str) -> Photo | None:
+        result = await async_get(_client, AIRCRAFT_PHOTO_AD_SOURCE_URL, params=dict(m=icao24, r=registration))
         if photos := result.json_data.get("data"):
             photo = photos[0]
             return Photo(
@@ -197,14 +178,13 @@ class AircraftPhoto:
         icao24: str,
         registration: str,
         sources: Collection[PhotoSource],
-        ps_user_agent: str,
     ) -> list[Photo]:
         tasks: dict[PhotoSource, list[Callable[[], Coroutine[Any, Any, Photo | None]]]] = {
             PhotoSource.HX: [lambda: cls._get_photo_from_hx(_client, icao24)],
-            PhotoSource.AD: [lambda: cls._get_photo_from_ad(_client, icao24, registration, ps_user_agent)],
+            PhotoSource.AD: [lambda: cls._get_photo_from_ad(_client, icao24, registration)],
             PhotoSource.PS: [
-                lambda: cls._get_photo_from_ps(_client, "hex", icao24, ps_user_agent),
-                lambda: cls._get_photo_from_ps(_client, "reg", registration, ps_user_agent),
+                lambda: cls._get_photo_from_ps(_client, "hex", icao24),
+                lambda: cls._get_photo_from_ps(_client, "reg", registration),
             ],
         }
 

@@ -1,13 +1,16 @@
 import asyncio
-from collections.abc import Generator, Collection, AsyncGenerator
+import warnings
+from typing import Any
+from collections.abc import Generator, AsyncGenerator
 
 import httpx
 
 from .osn import OSN
 from .utils import PlaneAboveClient, log
+from .config import Config
 from .flight import FlightRoute
 from .models import Above, Photo, State, Flight, Airport, Spotted, Aircraft, FlyingObject
-from .static import DEFAULT_DISTANCE_FROM_POINT, PhotoSource, RouteSource
+from .static import DEFAULT_DISTANCE_FROM_POINT, DataSource
 from .aircraft import AircraftDetails
 
 
@@ -24,46 +27,37 @@ class PlaneAbove:
     def __init__(
         self,
         point: tuple[float, float],
-        *,
         distance: float = DEFAULT_DISTANCE_FROM_POINT,
-        osn_id: str = "",
-        osn_secret: str = "",
-        osn_proxy: str | None = None,
-        ps_user_agent: str = "",
-        route_sources: Collection[RouteSource] = (RouteSource.HX,),
-        photo_sources: Collection[PhotoSource] = (PhotoSource.AD, PhotoSource.HX),
+        config: Config | None = None,
+        **kwargs: Any,
     ):
         """Initialize PlaneAbove client with search parameters and API credentials.
 
         Args:
             point: Geographic coordinates as (latitude, longitude).
             distance: Search radius in kilometers from the given point.
-            osn_id: OpenSky Network API identifier.
-            osn_secret: OpenSky Network API secret.
-            osn_proxy: Proxy URL for OpenSky Network requests.
-            route_sources: Route data sources to query, as a collection of
-                `RouteSource` members e.g. (RouteSource.HX, RouteSource.SB).
-                Sources not included here are skipped entirely. By including any
-                source in this collection, you confirm that you have read and agree
-                to the terms and restrictions that apply to it. See the "Sources"
-                section in README.md for details.
-            photo_sources: Photo data sources to query, as a collection of
-                `PhotoSource` members e.g. (PhotoSource.AD, PhotoSource.HX).
-                Sources not included here are skipped entirely. By including any
-                source in this collection, you confirm that you have read and agree
-                to the terms and restrictions that apply to it. See the "Sources"
-                section in README.md for details.
-            ps_user_agent: User-Agent string for planespotters.net API requests.
-                If this parameter is not provided, this source will not be queried
-                even if `PhotoSource.PS` is included in `photo_sources`. By providing
-                a User-Agent, you confirm that you have read and agree to comply
-                with planespotters.net's Terms of Use. See the "Sources" section
-                in README.md for details.
+            config: Configuration parameters.
         """
-        self._route_sources = route_sources
-        self._photo_sources = photo_sources
-        self._ps_user_agent = ps_user_agent
-        self.spotted = Spotted(*OSN.get_flying_objects(point, distance, osn_id, osn_secret, osn_proxy), errors=[])
+        default_config = Config()
+        if kwargs:
+            warnings.warn(
+                f"'{', '.join(kwargs.keys())}' will be removed in v1.0.0, use 'Config' for correct setup",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            self.config = Config(
+                route_sources=kwargs.get("route_sources", default_config.route_sources),
+                photo_sources=kwargs.get("photo_sources", default_config.photo_sources),
+                user_agent=kwargs.get("ps_user_agent", default_config.user_agent),
+                proxy_url=kwargs.get("osn_proxy", default_config.proxy_url),
+                proxy_scope=(DataSource.OPENSKY,),
+                osn_id=kwargs.get("osn_id", default_config.osn_id),
+                osn_secret=kwargs.get("osn_secret", default_config.osn_secret),
+            )
+        else:
+            self.config = config or default_config
+
+        self.spotted = Spotted(*OSN.get_flying_objects(point, distance, self.config), errors=[])
 
     async def _collect_data(
         self,
@@ -72,14 +66,8 @@ class PlaneAbove:
     ) -> tuple[Aircraft, Flight, State]:
         try:
             aircraft, flight = await asyncio.gather(
-                AircraftDetails.get_details(
-                    client,
-                    f_object.icao24,
-                    f_object.country,
-                    self._photo_sources,
-                    self._ps_user_agent,
-                ),
-                FlightRoute.get_route(client, f_object.callsign, self._route_sources, self._ps_user_agent),
+                AircraftDetails.get_details(client, f_object.icao24, f_object.country, self.config.photo_sources),
+                FlightRoute.get_route(client, f_object.callsign, self.config.route_sources),
             )
             return aircraft, flight, f_object.state
 
@@ -135,6 +123,16 @@ class PlaneAbove:
         Yields:
             Above: Structured Aircraft, Flight and State data for each spotted object.
         """
-        async with PlaneAboveClient() as client:
+        headers = {"User-Agent": self.config.user_agent} if self.config.user_agent else {}
+        mounts = (
+            {
+                f"all://*{source.value}": httpx.AsyncHTTPTransport(proxy=self.config.proxy_url)
+                for source in self.config.proxy_scope
+            }
+            if self.config.proxy_url and self.config.proxy_scope
+            else None
+        )
+
+        async with PlaneAboveClient(headers=headers, mounts=mounts) as client:
             for f_object in self.spotted.objects_filtered:
                 yield Above(*await self._collect_data(client, f_object))

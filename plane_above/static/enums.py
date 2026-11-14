@@ -1,24 +1,24 @@
 from enum import Enum
 
 
-class Source(str, Enum):
-    OS = "opensky-network.org"  # https://opensky-network.org/about/terms-of-use
-    HX = "hexdb.io"  # https://hexdb.io/
-    SB = "adsbdb.com"  # https://www.adsbdb.com/
-    AD = "airport-data.com"  # https://airport-data.com/terms
-    PS = "planespotters.net"  # https://www.planespotters.net/photo/api#terms
-    FD = "flightdb.net"  # https://www.flightdb.net/faq.php
+class DataSource(str, Enum):
+    OPENSKY = OS = "opensky-network.org"  # https://opensky-network.org/about/terms-of-use
+    HEX_DB = HX = "hexdb.io"  # https://hexdb.io/
+    ADSB_DB = SB = "adsbdb.com"  # https://www.adsbdb.com/
+    AIRPORT_DATA = AD = "airport-data.com"  # https://airport-data.com/terms
+    PLANESPOTTERS = PS = "planespotters.net"  # https://www.planespotters.net/photo/api#terms
+    FLIGHT_DB = FD = "flightdb.net"  # https://www.flightdb.net/faq.php
 
     def __str__(self) -> str:
         return self.value  # pragma: no cover
 
 
 class RouteSource(Enum):
-    HX = Source.HX
-    SB = Source.SB
+    HEX_DB = HX = DataSource.HX
+    ADSB_DB = SB = DataSource.SB
 
 
 class PhotoSource(Enum):
-    HX = Source.HX
-    AD = Source.AD
-    PS = Source.PS
+    HEX_DB = HX = DataSource.HX
+    AIRPORT_DATA = AD = DataSource.AD
+    PLANESPOTTERS = PS = DataSource.PS

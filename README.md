@@ -124,7 +124,7 @@ Airbus A330 342 flying to Brussels Airport (Zaventem Airport) is 1006 meters abo
 >    ...
 >```
 
-## Object Reference
+## Object reference
 
 Both `fetch()` and `async_fetch()` methods will return an iterator consisting of `Above` objects.
 <details>
@@ -208,51 +208,89 @@ class State:
 
 </details>
 
-## Limitations & Workarounds
+> [!TIP]
+> Use `to_dict()` or `to_json()` to serialize an `Above` object to a dict or a JSON string:
+>
+> ```pycon
+> >>> for above in pa.fetch():
+> ...     above.to_dict()   # -> dict
+> ...     above.to_json()   # -> str
+> ```
 
-### Sources Setup
+## Advanced usage
+
+To adjust behavior or apply workarounds you should use a `Config` which can be passed as a parameter when creating
+`PlaneAbove` instance:
+
+```python
+from plane_above import PlaneAbove, Config
+
+my_config = Config()
+PlaneAbove((52.457, 5.531), config=my_config)
+```
+
+### Sources setup
 
 By default, only sources without severe usage restrictions are queried, resulting in some data for `Route` and `Photo`
-being excluded. You can review and enable each source manually using `RouteSource` and `PhotoSource`:
+being excluded. You can review and enable each source manually using `RouteSource` and `PhotoSource` passed to `Config`:
+
+```python
+from plane_above import PlaneAbove, Config, RouteSource, PhotoSource
+
+route_sources = (
+    RouteSource.HEX_DB,  # https://hexdb.io/
+    RouteSource.ADSB_DB,  # https://www.adsbdb.com/
+)
+photo_sources = (
+    PhotoSource.HEX_DB,  # https://hexdb.io/
+    PhotoSource.AIRPORT_DATA,  # https://airport-data.com/terms
+    PhotoSource.PLANESPOTTERS,  # https://www.planespotters.net/photo/api#terms
+)
+
+PlaneAbove((52.457, 5.531), config=Config(route_sources=route_sources, photo_sources=photo_sources))
+```
 
 > [!WARNING]
 > By including a source, you confirm that you have read and agree to its terms
 > (see [sources](#sources) below for details).
 
-```python
-from plane_above import RouteSource, PhotoSource
-
-route_sources = (
-    RouteSource.HX,  # https://hexdb.io/
-    RouteSource.SB,  # https://www.adsbdb.com/
-)
-photo_sources = (
-    PhotoSource.HX,  # https://hexdb.io/
-    PhotoSource.AD,  # https://airport-data.com/terms
-    PhotoSource.PS,  # https://www.planespotters.net/photo/api#terms
-)
-
-PlaneAbove((52.457, 5.531), route_sources=route_sources, photo_sources=photo_sources)
-```
-
 You can skip direct calls to photo sources entirely for performance or liability reasons and still receive photo
 when requesting aircraft details (_if available in default provider_):
 
 ```python
-PlaneAbove((52.457, 5.531), photo_sources=())
+PlaneAbove((52.457, 5.531), config=Config(photo_sources=()))
 ```
 
-### Planespotters.net Additional Requirement
+### User-Agent setup
 
-This photo source has a strict policy about making requests with
-[unique and descriptive user-agents](https://www.planespotters.net/photo/api). That's doable with an extra param:
+Some sources may deny requests sent without proper `User-Agent` header.
+To fix that pass a `user_agent` parameter to `Config`. All requests will be sharing that `User-Agent`:
 
 ```python
-PlaneAbove((52.457, 5.531), ps_user_agent="YourApp/1.0 (+https://example.com/contact)")
+custom_user_agent = "YourApp/1.0 (+https://example.com/contact)"
+PlaneAbove((52.457, 5.531), config=Config(user_agent=custom_user_agent))
 ```
 
-Even if `PhotoSource.PS` is enabled in `photo_sources`, requests won't be processed without a valid `ps_user_agent`.
-Other photo sources are unaffected.
+> [!IMPORTANT]
+> `Planespotters.net` has a strict policy about making requests with
+> [unique and descriptive user-agents](https://www.planespotters.net/photo/api).
+> Even if `PhotoSource.PLANESPOTTERS` is enabled in `photo_sources`,
+> requests won't be processed without a valid `user_agent`
+
+### Proxy setup
+
+In some cases requests might be rejected or timed-out without any specific reason.
+That's due to some sources' blocking policies and you probably would like to utilize proxy here as a workaround:
+
+```python
+from plane_above import PlaneAbove, Config, DataSource
+
+my_config = Config(proxy_url="http://username:password@host:port", proxy_scope=(DataSource.OPENSKY,))
+PlaneAbove((52.457, 5.531), config=my_config)
+```
+
+Please note that only scoped sources will be called with proxy; if none is specified then no proxy will be used.
+Refer to `DataSource` enum for all available sources.
 
 ### OpenSky Network Authentication
 
@@ -261,19 +299,8 @@ If you wish to extend your usage - consider obtaining `client_id` and  `client_s
 [here](https://openskynetwork.github.io/opensky-api/rest.html#authentication). Then you pass extra params:
 
 ```python
-PlaneAbove((52.457, 5.531), osn_id="your_client_id", osn_secret="your_client_secret")
+PlaneAbove((52.457, 5.531), config=Config(osn_id="your_client_id", osn_secret="your_client_secret"))
 ```
-
-### OpenSky Network Timeouts
-
-In some cases your calls to OSN might be timed-out without any specific reason. That's due to their
-blocking policies and you probably would like to utilize proxy here as a workaround:
-
-```python
-PlaneAbove((52.457, 5.531), osn_proxy="http://username:password@host:port")
-```
-
-Please note that this will be used for making an OSN request only; other sources won't be called with that proxy.
 
 ## Data sources
 

@@ -16,7 +16,7 @@ def async_client() -> httpx.AsyncClient:
 def plane_above_mock(request, monkeypatch) -> PlaneAbove:
     monkeypatch.setattr(
         "plane_above.osn.OSN._retrieve_objects_in_area",
-        lambda area, auth_token, proxy: (request.param, True),
+        lambda client, area, auth_token: (request.param, True),
     )
     return PlaneAbove(
         COORDINATES,

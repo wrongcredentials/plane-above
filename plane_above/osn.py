@@ -144,7 +144,7 @@ class OSN:
             else None
         )
 
-        with httpx.Client(headers=headers, mounts=mounts) as client:
+        with httpx.Client(headers=headers, mounts=mounts, timeout=10.0) as client:
             auth = (
                 OSNAuth(config.osn_id, config.osn_secret).get_token(client)
                 if all((config.osn_id, config.osn_secret))

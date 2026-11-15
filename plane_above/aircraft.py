@@ -7,7 +7,6 @@ from collections.abc import Callable, Coroutine, Collection
 
 import httpx
 from lxml import html
-from dateutil.relativedelta import relativedelta
 
 from .utils import HttpResult, log, async_get
 from .models import Photo, Aircraft
@@ -89,15 +88,13 @@ class AircraftDetails:
                 return 0.0
 
             try:
-                relative_age = relativedelta(
-                    datetime.datetime.now(tz=datetime.timezone.utc).date(),
-                    datetime.datetime.strptime(year_built, "%Y").replace(tzinfo=datetime.timezone.utc).date(),
-                )
-                age = round(relative_age.years + relative_age.months / 12.0, ndigits=1)
+                built = datetime.datetime.strptime(year_built, "%Y")
+                now = datetime.datetime.now(tz=datetime.timezone.utc)
+                age = round(now.year - built.year + (now.month - 1) / 12.0, ndigits=1)
                 return age if age > 0 else 0.0
 
             except (ValueError, TypeError):
-                log.error(f" ✈ Cannot parse plane age for {icao24}: {year_built}.")
+                log.error(f"Cannot parse plane age for {icao24}: {year_built!r}.")
                 return 0.0
 
         ac_details: dict[str, str] = dict(

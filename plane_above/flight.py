@@ -5,7 +5,6 @@ from urllib.parse import urljoin
 from collections.abc import Callable, Coroutine, Collection
 
 import httpx
-from dateutil.relativedelta import relativedelta
 
 from .utils import log, async_get
 from .models import Flight, Airport
@@ -114,7 +113,7 @@ class FlightRoute:
         try:
             updated_at = datetime.datetime.fromtimestamp(last_update, tz=datetime.timezone.utc)
             now = datetime.datetime.now(tz=datetime.timezone.utc)
-            return bool(updated_at + relativedelta(years=max_age_years) < now)
+            return now - updated_at > datetime.timedelta(days=365 * max_age_years)
         except (ValueError, TypeError):
             return True
 

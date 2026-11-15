@@ -1,9 +1,6 @@
 import json
-import warnings
 from typing import Any, NamedTuple
 from dataclasses import asdict, dataclass
-
-import country_converter
 
 from .static import OSNStateVectorType
 
@@ -17,11 +14,6 @@ class Photo:
     @property
     def _has_urls(self) -> bool:
         return bool(self.image_url and self.origin_url)
-
-    @property
-    def has_urls(self) -> bool:  # pragma: no cover
-        warnings.warn("'has_urls' is internal and will be removed in v1.0.0", DeprecationWarning, stacklevel=2)
-        return self._has_urls
 
 
 @dataclass(frozen=True)
@@ -92,31 +84,3 @@ class Above(NamedTuple):
     def to_json(self, **kwargs: Any) -> str:
         kwargs.setdefault("ensure_ascii", False)
         return json.dumps(self.to_dict(), **kwargs)
-
-    @property
-    def route(self) -> Flight:  # pragma: no cover
-        warnings.warn("'route' will be removed in v1.0.0, use 'flight'", DeprecationWarning, stacklevel=2)
-        return self.flight
-
-    @property
-    def country_code(self) -> str:  # pragma: no cover
-        warnings.warn(
-            "'country_code' will be removed in v1.0.0, use 'aircraft.country'", DeprecationWarning, stacklevel=2
-        )
-        cc = country_converter.CountryConverter()
-        return cc.convert(names=self.aircraft.country, to="ISO2", not_found="UN")  # type: ignore[no-any-return]
-
-    @property
-    def icao24(self) -> str:  # pragma: no cover
-        warnings.warn("'icao24' will be removed in v1.0.0, use 'aircraft.icao24'", DeprecationWarning, stacklevel=2)
-        return self.aircraft.icao24
-
-    @property
-    def photo(self) -> Photo:  # pragma: no cover
-        warnings.warn("'photo' will be removed in v1.0.0, use 'aircraft.photos'", DeprecationWarning, stacklevel=2)
-        return self.aircraft.photos[0]
-
-    @property
-    def callsign(self) -> str:  # pragma: no cover
-        warnings.warn("'callsign' will be removed in v1.0.0, use 'flight.callsign'", DeprecationWarning, stacklevel=2)
-        return self.flight.callsign

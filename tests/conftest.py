@@ -4,7 +4,7 @@ import httpx
 import pytest
 
 from tests.data import COORDINATES
-from plane_above import PlaneAbove, PhotoSource, RouteSource
+from plane_above import Config, PlaneAbove, PhotoSource, RouteSource
 
 
 @pytest.fixture
@@ -20,7 +20,9 @@ def plane_above_mock(request, monkeypatch) -> PlaneAbove:
     )
     return PlaneAbove(
         COORDINATES,
-        route_sources=(RouteSource.HX,),
-        photo_sources=(PhotoSource.HX,),
-        ps_user_agent=os.environ["USER_AGENT"],
+        config=Config(
+            route_sources=(RouteSource.HX,),
+            photo_sources=(PhotoSource.HX,),
+            user_agent=os.environ["USER_AGENT"],
+        ),
     )

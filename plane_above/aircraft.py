@@ -5,7 +5,7 @@ from collections import ChainMap
 from urllib.parse import urljoin
 from collections.abc import Callable, Coroutine, Collection
 
-import httpx
+import httpx2
 from lxml import html
 
 from .utils import HttpResult, log, async_get
@@ -52,7 +52,7 @@ class AircraftDetails:
 
     @staticmethod
     def _parse_sb_source(result: HttpResult) -> dict[str, str | None]:
-        if result.status_code == httpx.codes.NOT_FOUND or not result.json_data:
+        if result.status_code == httpx2.codes.NOT_FOUND or not result.json_data:
             return {}
 
         return result.json_data.get("response", {}).get("aircraft", {})  # type: ignore[no-any-return]
@@ -60,7 +60,7 @@ class AircraftDetails:
     @classmethod
     async def get_details(
         cls,
-        _client: httpx.AsyncClient,
+        _client: httpx2.AsyncClient,
         icao24: str,
         country: str,
         sources: Collection[PhotoSource],
@@ -129,14 +129,14 @@ class AircraftDetails:
 
 class AircraftPhoto:
     @staticmethod
-    async def _get_photo_from_hx(_client: httpx.AsyncClient, icao24: str) -> Photo | None:
+    async def _get_photo_from_hx(_client: httpx2.AsyncClient, icao24: str) -> Photo | None:
         result = await async_get(_client, AIRCRAFT_PHOTO_HX_SOURCE_URL, params=dict(hex=icao24))
-        if result.status_code != httpx.codes.NOT_FOUND and result.data:
+        if result.status_code != httpx2.codes.NOT_FOUND and result.data:
             return Photo(image_url=result.data, origin_url=result.data)
         return None
 
     @staticmethod
-    async def _get_photo_from_ps(_client: httpx.AsyncClient, by: str, item: str) -> Photo | None:
+    async def _get_photo_from_ps(_client: httpx2.AsyncClient, by: str, item: str) -> Photo | None:
         result = await async_get(_client, urljoin(AIRCRAFT_PHOTO_PS_SOURCE_URL, f"{by}/{item}"))
 
         if photos := result.json_data.get("photos"):
@@ -157,7 +157,7 @@ class AircraftPhoto:
         return urljoin(AIRCRAFT_PHOTO_AD_STATIC_URL, filename)
 
     @classmethod
-    async def _get_photo_from_ad(cls, _client: httpx.AsyncClient, icao24: str, registration: str) -> Photo | None:
+    async def _get_photo_from_ad(cls, _client: httpx2.AsyncClient, icao24: str, registration: str) -> Photo | None:
         result = await async_get(_client, AIRCRAFT_PHOTO_AD_SOURCE_URL, params=dict(m=icao24, r=registration))
         if photos := result.json_data.get("data"):
             photo = photos[0]
@@ -171,7 +171,7 @@ class AircraftPhoto:
     @classmethod
     async def get_photos(
         cls,
-        _client: httpx.AsyncClient,
+        _client: httpx2.AsyncClient,
         icao24: str,
         registration: str,
         sources: Collection[PhotoSource],

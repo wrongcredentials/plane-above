@@ -1,6 +1,6 @@
 import os
 
-import httpx
+import httpx2
 import pytest
 
 from tests.data import COORDINATES
@@ -8,8 +8,8 @@ from plane_above import Config, PlaneAbove, PhotoSource, RouteSource
 
 
 @pytest.fixture
-def async_client() -> httpx.AsyncClient:
-    return httpx.AsyncClient()
+def async_client() -> httpx2.AsyncClient:
+    return httpx2.AsyncClient()
 
 
 @pytest.fixture

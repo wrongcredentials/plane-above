@@ -3,7 +3,7 @@ import logging
 from typing import Any
 from urllib.parse import urljoin
 
-import httpx
+import httpx2
 from common import HEADERS, PROXY_MOUNTS
 
 from plane_above.utils import async_get
@@ -23,12 +23,12 @@ AIRCRAFT_REG = "F-GUGO"
 
 
 class PhotoCheck:
-    def __init__(self, client: httpx.AsyncClient) -> None:
+    def __init__(self, client: httpx2.AsyncClient) -> None:
         self.client = client
 
     @staticmethod
     def _statuses_check(*args: int) -> bool:
-        return all(s == httpx.codes.OK for s in args)
+        return all(s == httpx2.codes.OK for s in args)
 
     @staticmethod
     def _content_check(headers: dict[Any, Any]) -> bool:
@@ -98,7 +98,7 @@ class PhotoCheck:
 
 
 async def main() -> int:
-    async with httpx.AsyncClient(timeout=10.0, mounts=PROXY_MOUNTS) as client:
+    async with httpx2.AsyncClient(timeout=10.0, mounts=PROXY_MOUNTS) as client:
         check = PhotoCheck(client)
         checks = {
             DataSource.HX: check.hx_source,

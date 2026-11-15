@@ -1,6 +1,6 @@
-import httpx
+import httpx2
 import pytest
-from pytest_httpx import HTTPXMock
+from pytest_httpx2 import HTTPXMock
 
 from tests import AircraftMocks
 from tests.data import AIRCRAFT_AGE, AIRCRAFT_ICAO, AIRCRAFT_COUNTRY
@@ -8,11 +8,11 @@ from plane_above.aircraft import Photo, Aircraft, AircraftDetails
 
 
 @pytest.mark.asyncio
-async def test_all_aircraft_sources_ok(async_client: httpx.AsyncClient, httpx_mock: HTTPXMock):
-    httpx_mock.add_response(url=AircraftMocks.SB_AIRCRAFT_URL, **AircraftMocks.SB_AIRCRAFT_RESP_200)
-    httpx_mock.add_response(url=AircraftMocks.HX_AIRCRAFT_URL, **AircraftMocks.HX_AIRCRAFT_RESP_200)
-    httpx_mock.add_response(url=AircraftMocks.FD_AIRCRAFT_URL, **AircraftMocks.FD_AIRCRAFT_RESP_200)
-    httpx_mock.add_response(url=AircraftMocks.AD_AIRCRAFT_URL, **AircraftMocks.AD_AIRCRAFT_RESP_200)
+async def test_all_aircraft_sources_ok(async_client: httpx2.AsyncClient, httpx2_mock: HTTPXMock):
+    httpx2_mock.add_response(url=AircraftMocks.SB_AIRCRAFT_URL, **AircraftMocks.SB_AIRCRAFT_RESP_200)
+    httpx2_mock.add_response(url=AircraftMocks.HX_AIRCRAFT_URL, **AircraftMocks.HX_AIRCRAFT_RESP_200)
+    httpx2_mock.add_response(url=AircraftMocks.FD_AIRCRAFT_URL, **AircraftMocks.FD_AIRCRAFT_RESP_200)
+    httpx2_mock.add_response(url=AircraftMocks.AD_AIRCRAFT_URL, **AircraftMocks.AD_AIRCRAFT_RESP_200)
 
     aircraft = await AircraftDetails.get_details(async_client, AIRCRAFT_ICAO, AIRCRAFT_COUNTRY, sources=())
     assert aircraft.icao24 == AIRCRAFT_ICAO
@@ -27,11 +27,11 @@ async def test_all_aircraft_sources_ok(async_client: httpx.AsyncClient, httpx_mo
 
 
 @pytest.mark.asyncio
-async def test_all_aircraft_sources_empty(async_client: httpx.AsyncClient, httpx_mock: HTTPXMock):
-    httpx_mock.add_response(url=AircraftMocks.SB_AIRCRAFT_URL, **AircraftMocks.SB_AIRCRAFT_RESP_404)
-    httpx_mock.add_response(url=AircraftMocks.HX_AIRCRAFT_URL, **AircraftMocks.HX_AIRCRAFT_RESP_404)
-    httpx_mock.add_response(url=AircraftMocks.FD_AIRCRAFT_URL, **AircraftMocks.FD_AIRCRAFT_RESP_404)
-    httpx_mock.add_response(url=AircraftMocks.AD_AIRCRAFT_URL, **AircraftMocks.AD_AIRCRAFT_RESP_404)
+async def test_all_aircraft_sources_empty(async_client: httpx2.AsyncClient, httpx2_mock: HTTPXMock):
+    httpx2_mock.add_response(url=AircraftMocks.SB_AIRCRAFT_URL, **AircraftMocks.SB_AIRCRAFT_RESP_404)
+    httpx2_mock.add_response(url=AircraftMocks.HX_AIRCRAFT_URL, **AircraftMocks.HX_AIRCRAFT_RESP_404)
+    httpx2_mock.add_response(url=AircraftMocks.FD_AIRCRAFT_URL, **AircraftMocks.FD_AIRCRAFT_RESP_404)
+    httpx2_mock.add_response(url=AircraftMocks.AD_AIRCRAFT_URL, **AircraftMocks.AD_AIRCRAFT_RESP_404)
 
     aircraft = await AircraftDetails.get_details(async_client, AIRCRAFT_ICAO, AIRCRAFT_COUNTRY, sources=())
 
@@ -50,13 +50,13 @@ async def test_all_aircraft_sources_empty(async_client: httpx.AsyncClient, httpx
 
 @pytest.mark.asyncio
 async def test_all_aircraft_sources_unavailable(
-    async_client: httpx.AsyncClient,
-    httpx_mock: HTTPXMock,
+    async_client: httpx2.AsyncClient,
+    httpx2_mock: HTTPXMock,
 ):
-    httpx_mock.add_response(url=AircraftMocks.SB_AIRCRAFT_URL, **AircraftMocks.SB_AIRCRAFT_RESP_502)
-    httpx_mock.add_response(url=AircraftMocks.HX_AIRCRAFT_URL, **AircraftMocks.HX_AIRCRAFT_RESP_502)
-    httpx_mock.add_response(url=AircraftMocks.FD_AIRCRAFT_URL, **AircraftMocks.FD_AIRCRAFT_RESP_502)
-    httpx_mock.add_response(url=AircraftMocks.AD_AIRCRAFT_URL, **AircraftMocks.AD_AIRCRAFT_RESP_502)
+    httpx2_mock.add_response(url=AircraftMocks.SB_AIRCRAFT_URL, **AircraftMocks.SB_AIRCRAFT_RESP_502)
+    httpx2_mock.add_response(url=AircraftMocks.HX_AIRCRAFT_URL, **AircraftMocks.HX_AIRCRAFT_RESP_502)
+    httpx2_mock.add_response(url=AircraftMocks.FD_AIRCRAFT_URL, **AircraftMocks.FD_AIRCRAFT_RESP_502)
+    httpx2_mock.add_response(url=AircraftMocks.AD_AIRCRAFT_URL, **AircraftMocks.AD_AIRCRAFT_RESP_502)
 
     aircraft = await AircraftDetails.get_details(async_client, AIRCRAFT_ICAO, country="", sources=())
 
@@ -74,11 +74,11 @@ async def test_all_aircraft_sources_unavailable(
 
 
 @pytest.mark.asyncio
-async def test_sb_aircraft_source_empty(async_client: httpx.AsyncClient, httpx_mock: HTTPXMock):
-    httpx_mock.add_response(url=AircraftMocks.SB_AIRCRAFT_URL, **AircraftMocks.SB_AIRCRAFT_RESP_404)
-    httpx_mock.add_response(url=AircraftMocks.HX_AIRCRAFT_URL, **AircraftMocks.HX_AIRCRAFT_RESP_200)
-    httpx_mock.add_response(url=AircraftMocks.FD_AIRCRAFT_URL, **AircraftMocks.FD_AIRCRAFT_RESP_200)
-    httpx_mock.add_response(url=AircraftMocks.AD_AIRCRAFT_URL, **AircraftMocks.AD_AIRCRAFT_RESP_200)
+async def test_sb_aircraft_source_empty(async_client: httpx2.AsyncClient, httpx2_mock: HTTPXMock):
+    httpx2_mock.add_response(url=AircraftMocks.SB_AIRCRAFT_URL, **AircraftMocks.SB_AIRCRAFT_RESP_404)
+    httpx2_mock.add_response(url=AircraftMocks.HX_AIRCRAFT_URL, **AircraftMocks.HX_AIRCRAFT_RESP_200)
+    httpx2_mock.add_response(url=AircraftMocks.FD_AIRCRAFT_URL, **AircraftMocks.FD_AIRCRAFT_RESP_200)
+    httpx2_mock.add_response(url=AircraftMocks.AD_AIRCRAFT_URL, **AircraftMocks.AD_AIRCRAFT_RESP_200)
 
     aircraft = await AircraftDetails.get_details(async_client, AIRCRAFT_ICAO, AIRCRAFT_COUNTRY, sources=())
 
@@ -94,11 +94,11 @@ async def test_sb_aircraft_source_empty(async_client: httpx.AsyncClient, httpx_m
 
 
 @pytest.mark.asyncio
-async def test_hx_aircraft_source_empty(async_client: httpx.AsyncClient, httpx_mock: HTTPXMock):
-    httpx_mock.add_response(url=AircraftMocks.SB_AIRCRAFT_URL, **AircraftMocks.SB_AIRCRAFT_RESP_200)
-    httpx_mock.add_response(url=AircraftMocks.HX_AIRCRAFT_URL, **AircraftMocks.HX_AIRCRAFT_RESP_404)
-    httpx_mock.add_response(url=AircraftMocks.FD_AIRCRAFT_URL, **AircraftMocks.FD_AIRCRAFT_RESP_200)
-    httpx_mock.add_response(url=AircraftMocks.AD_AIRCRAFT_URL, **AircraftMocks.AD_AIRCRAFT_RESP_200)
+async def test_hx_aircraft_source_empty(async_client: httpx2.AsyncClient, httpx2_mock: HTTPXMock):
+    httpx2_mock.add_response(url=AircraftMocks.SB_AIRCRAFT_URL, **AircraftMocks.SB_AIRCRAFT_RESP_200)
+    httpx2_mock.add_response(url=AircraftMocks.HX_AIRCRAFT_URL, **AircraftMocks.HX_AIRCRAFT_RESP_404)
+    httpx2_mock.add_response(url=AircraftMocks.FD_AIRCRAFT_URL, **AircraftMocks.FD_AIRCRAFT_RESP_200)
+    httpx2_mock.add_response(url=AircraftMocks.AD_AIRCRAFT_URL, **AircraftMocks.AD_AIRCRAFT_RESP_200)
 
     aircraft = await AircraftDetails.get_details(async_client, AIRCRAFT_ICAO, AIRCRAFT_COUNTRY, sources=())
 
@@ -115,11 +115,11 @@ async def test_hx_aircraft_source_empty(async_client: httpx.AsyncClient, httpx_m
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("_fd_resp", [AircraftMocks.FD_AIRCRAFT_RESP_404, AircraftMocks.FD_AIRCRAFT_BAD_RESP_200])
-async def test_fd_aircraft_source_empty(_fd_resp, async_client: httpx.AsyncClient, httpx_mock: HTTPXMock):
-    httpx_mock.add_response(url=AircraftMocks.SB_AIRCRAFT_URL, **AircraftMocks.SB_AIRCRAFT_RESP_200)
-    httpx_mock.add_response(url=AircraftMocks.HX_AIRCRAFT_URL, **AircraftMocks.HX_AIRCRAFT_RESP_200)
-    httpx_mock.add_response(url=AircraftMocks.AD_AIRCRAFT_URL, **AircraftMocks.AD_AIRCRAFT_RESP_200)
-    httpx_mock.add_response(url=AircraftMocks.FD_AIRCRAFT_URL, **_fd_resp)
+async def test_fd_aircraft_source_empty(_fd_resp, async_client: httpx2.AsyncClient, httpx2_mock: HTTPXMock):
+    httpx2_mock.add_response(url=AircraftMocks.SB_AIRCRAFT_URL, **AircraftMocks.SB_AIRCRAFT_RESP_200)
+    httpx2_mock.add_response(url=AircraftMocks.HX_AIRCRAFT_URL, **AircraftMocks.HX_AIRCRAFT_RESP_200)
+    httpx2_mock.add_response(url=AircraftMocks.AD_AIRCRAFT_URL, **AircraftMocks.AD_AIRCRAFT_RESP_200)
+    httpx2_mock.add_response(url=AircraftMocks.FD_AIRCRAFT_URL, **_fd_resp)
 
     aircraft = await AircraftDetails.get_details(async_client, AIRCRAFT_ICAO, AIRCRAFT_COUNTRY, sources=())
 
@@ -135,11 +135,11 @@ async def test_fd_aircraft_source_empty(_fd_resp, async_client: httpx.AsyncClien
 
 
 @pytest.mark.asyncio
-async def test_only_ad_aircraft_source_not_empty(async_client: httpx.AsyncClient, httpx_mock: HTTPXMock):
-    httpx_mock.add_response(url=AircraftMocks.SB_AIRCRAFT_URL, **AircraftMocks.SB_AIRCRAFT_RESP_404)
-    httpx_mock.add_response(url=AircraftMocks.HX_AIRCRAFT_URL, **AircraftMocks.HX_AIRCRAFT_RESP_404)
-    httpx_mock.add_response(url=AircraftMocks.FD_AIRCRAFT_URL, **AircraftMocks.FD_AIRCRAFT_RESP_502)
-    httpx_mock.add_response(url=AircraftMocks.AD_AIRCRAFT_URL, **AircraftMocks.AD_AIRCRAFT_RESP_200)
+async def test_only_ad_aircraft_source_not_empty(async_client: httpx2.AsyncClient, httpx2_mock: HTTPXMock):
+    httpx2_mock.add_response(url=AircraftMocks.SB_AIRCRAFT_URL, **AircraftMocks.SB_AIRCRAFT_RESP_404)
+    httpx2_mock.add_response(url=AircraftMocks.HX_AIRCRAFT_URL, **AircraftMocks.HX_AIRCRAFT_RESP_404)
+    httpx2_mock.add_response(url=AircraftMocks.FD_AIRCRAFT_URL, **AircraftMocks.FD_AIRCRAFT_RESP_502)
+    httpx2_mock.add_response(url=AircraftMocks.AD_AIRCRAFT_URL, **AircraftMocks.AD_AIRCRAFT_RESP_200)
 
     aircraft = await AircraftDetails.get_details(async_client, AIRCRAFT_ICAO, AIRCRAFT_COUNTRY, sources=())
 

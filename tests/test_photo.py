@@ -1,6 +1,6 @@
-import httpx
+import httpx2
 import pytest
-from pytest_httpx import HTTPXMock
+from pytest_httpx2 import HTTPXMock
 
 from tests import PhotoMocks
 from tests.data import AIRCRAFT_REG, AIRCRAFT_ICAO
@@ -26,15 +26,15 @@ PHOTO_EMPTY = Photo(image_url="", origin_url="", photographer="")
 
 
 @pytest.mark.asyncio
-async def test_ad_photo_source_ok(async_client: httpx.AsyncClient, httpx_mock: HTTPXMock):
-    httpx_mock.add_response(url=PhotoMocks.AD_PHOTO_URL, **PhotoMocks.AD_PHOTO_RESP_200)
+async def test_ad_photo_source_ok(async_client: httpx2.AsyncClient, httpx2_mock: HTTPXMock):
+    httpx2_mock.add_response(url=PhotoMocks.AD_PHOTO_URL, **PhotoMocks.AD_PHOTO_RESP_200)
     photo = await AircraftPhoto._get_photo_from_ad(async_client, AIRCRAFT_ICAO, AIRCRAFT_REG)
     assert photo == PHOTO_AD
 
 
 @pytest.mark.asyncio
-async def test_hx_photo_source_ok(async_client: httpx.AsyncClient, httpx_mock: HTTPXMock):
-    httpx_mock.add_response(url=PhotoMocks.HX_PHOTO_URL, **PhotoMocks.HX_PHOTO_RESP_200)
+async def test_hx_photo_source_ok(async_client: httpx2.AsyncClient, httpx2_mock: HTTPXMock):
+    httpx2_mock.add_response(url=PhotoMocks.HX_PHOTO_URL, **PhotoMocks.HX_PHOTO_RESP_200)
     photo = await AircraftPhoto._get_photo_from_hx(async_client, AIRCRAFT_ICAO)
     assert photo == PHOTO_HX
 
@@ -48,20 +48,20 @@ async def test_ps_source_ok(
     _url: str,
     _by: str,
     _item: str,
-    async_client: httpx.AsyncClient,
-    httpx_mock: HTTPXMock,
+    async_client: httpx2.AsyncClient,
+    httpx2_mock: HTTPXMock,
 ):
-    httpx_mock.add_response(url=_url, **PhotoMocks.PS_PHOTO_RESP_200)
+    httpx2_mock.add_response(url=_url, **PhotoMocks.PS_PHOTO_RESP_200)
     photo = await AircraftPhoto._get_photo_from_ps(async_client, _by, _item)
     assert photo == PHOTO_PS
 
 
 @pytest.mark.asyncio
-async def test_all_photo_sources_ok(async_client: httpx.AsyncClient, httpx_mock: HTTPXMock):
-    httpx_mock.add_response(url=PhotoMocks.HX_PHOTO_URL, **PhotoMocks.HX_PHOTO_RESP_200)
-    httpx_mock.add_response(url=PhotoMocks.AD_PHOTO_URL, **PhotoMocks.AD_PHOTO_RESP_200)
-    httpx_mock.add_response(url=PhotoMocks.PS_HEX_PHOTO_URL, **PhotoMocks.PS_PHOTO_RESP_200)
-    httpx_mock.add_response(url=PhotoMocks.PS_REG_PHOTO_URL, **PhotoMocks.PS_PHOTO_RESP_200)
+async def test_all_photo_sources_ok(async_client: httpx2.AsyncClient, httpx2_mock: HTTPXMock):
+    httpx2_mock.add_response(url=PhotoMocks.HX_PHOTO_URL, **PhotoMocks.HX_PHOTO_RESP_200)
+    httpx2_mock.add_response(url=PhotoMocks.AD_PHOTO_URL, **PhotoMocks.AD_PHOTO_RESP_200)
+    httpx2_mock.add_response(url=PhotoMocks.PS_HEX_PHOTO_URL, **PhotoMocks.PS_PHOTO_RESP_200)
+    httpx2_mock.add_response(url=PhotoMocks.PS_REG_PHOTO_URL, **PhotoMocks.PS_PHOTO_RESP_200)
 
     photos = await AircraftPhoto.get_photos(
         async_client, AIRCRAFT_ICAO, AIRCRAFT_REG, (PhotoSource.HX, PhotoSource.AD, PhotoSource.PS)
@@ -70,11 +70,11 @@ async def test_all_photo_sources_ok(async_client: httpx.AsyncClient, httpx_mock:
 
 
 @pytest.mark.asyncio
-async def test_all_photo_sources_empty(async_client: httpx.AsyncClient, httpx_mock: HTTPXMock):
-    httpx_mock.add_response(url=PhotoMocks.HX_PHOTO_URL, **PhotoMocks.HX_PHOTO_RESP_404)
-    httpx_mock.add_response(url=PhotoMocks.AD_PHOTO_URL, **PhotoMocks.AD_PHOTO_RESP_404)
-    httpx_mock.add_response(url=PhotoMocks.PS_HEX_PHOTO_URL, **PhotoMocks.PS_PHOTO_RESP_404)
-    httpx_mock.add_response(url=PhotoMocks.PS_REG_PHOTO_URL, **PhotoMocks.PS_PHOTO_RESP_404)
+async def test_all_photo_sources_empty(async_client: httpx2.AsyncClient, httpx2_mock: HTTPXMock):
+    httpx2_mock.add_response(url=PhotoMocks.HX_PHOTO_URL, **PhotoMocks.HX_PHOTO_RESP_404)
+    httpx2_mock.add_response(url=PhotoMocks.AD_PHOTO_URL, **PhotoMocks.AD_PHOTO_RESP_404)
+    httpx2_mock.add_response(url=PhotoMocks.PS_HEX_PHOTO_URL, **PhotoMocks.PS_PHOTO_RESP_404)
+    httpx2_mock.add_response(url=PhotoMocks.PS_REG_PHOTO_URL, **PhotoMocks.PS_PHOTO_RESP_404)
 
     photos = await AircraftPhoto.get_photos(
         async_client, AIRCRAFT_ICAO, AIRCRAFT_REG, (PhotoSource.HX, PhotoSource.AD, PhotoSource.PS)
@@ -83,11 +83,11 @@ async def test_all_photo_sources_empty(async_client: httpx.AsyncClient, httpx_mo
 
 
 @pytest.mark.asyncio
-async def test_all_photo_sources_unavailable(async_client: httpx.AsyncClient, httpx_mock: HTTPXMock):
-    httpx_mock.add_response(url=PhotoMocks.HX_PHOTO_URL, **PhotoMocks.HX_PHOTO_RESP_502)
-    httpx_mock.add_response(url=PhotoMocks.AD_PHOTO_URL, **PhotoMocks.AD_PHOTO_RESP_502)
-    httpx_mock.add_response(url=PhotoMocks.PS_HEX_PHOTO_URL, **PhotoMocks.PS_PHOTO_RESP_502)
-    httpx_mock.add_response(url=PhotoMocks.PS_REG_PHOTO_URL, **PhotoMocks.PS_PHOTO_RESP_502)
+async def test_all_photo_sources_unavailable(async_client: httpx2.AsyncClient, httpx2_mock: HTTPXMock):
+    httpx2_mock.add_response(url=PhotoMocks.HX_PHOTO_URL, **PhotoMocks.HX_PHOTO_RESP_502)
+    httpx2_mock.add_response(url=PhotoMocks.AD_PHOTO_URL, **PhotoMocks.AD_PHOTO_RESP_502)
+    httpx2_mock.add_response(url=PhotoMocks.PS_HEX_PHOTO_URL, **PhotoMocks.PS_PHOTO_RESP_502)
+    httpx2_mock.add_response(url=PhotoMocks.PS_REG_PHOTO_URL, **PhotoMocks.PS_PHOTO_RESP_502)
 
     photos = await AircraftPhoto.get_photos(
         async_client, AIRCRAFT_ICAO, AIRCRAFT_REG, (PhotoSource.HX, PhotoSource.AD, PhotoSource.PS)
@@ -97,11 +97,11 @@ async def test_all_photo_sources_unavailable(async_client: httpx.AsyncClient, ht
 
 
 @pytest.mark.asyncio
-async def test_hx_photo_source_empty(async_client: httpx.AsyncClient, httpx_mock: HTTPXMock):
-    httpx_mock.add_response(url=PhotoMocks.HX_PHOTO_URL, **PhotoMocks.HX_PHOTO_RESP_404)
-    httpx_mock.add_response(url=PhotoMocks.AD_PHOTO_URL, **PhotoMocks.AD_PHOTO_RESP_200)
-    httpx_mock.add_response(url=PhotoMocks.PS_HEX_PHOTO_URL, **PhotoMocks.PS_PHOTO_RESP_200)
-    httpx_mock.add_response(url=PhotoMocks.PS_REG_PHOTO_URL, **PhotoMocks.PS_PHOTO_RESP_200)
+async def test_hx_photo_source_empty(async_client: httpx2.AsyncClient, httpx2_mock: HTTPXMock):
+    httpx2_mock.add_response(url=PhotoMocks.HX_PHOTO_URL, **PhotoMocks.HX_PHOTO_RESP_404)
+    httpx2_mock.add_response(url=PhotoMocks.AD_PHOTO_URL, **PhotoMocks.AD_PHOTO_RESP_200)
+    httpx2_mock.add_response(url=PhotoMocks.PS_HEX_PHOTO_URL, **PhotoMocks.PS_PHOTO_RESP_200)
+    httpx2_mock.add_response(url=PhotoMocks.PS_REG_PHOTO_URL, **PhotoMocks.PS_PHOTO_RESP_200)
 
     photos = await AircraftPhoto.get_photos(
         async_client, AIRCRAFT_ICAO, AIRCRAFT_REG, (PhotoSource.HX, PhotoSource.AD, PhotoSource.PS)
@@ -111,11 +111,11 @@ async def test_hx_photo_source_empty(async_client: httpx.AsyncClient, httpx_mock
 
 
 @pytest.mark.asyncio
-async def test_hx_ad_photo_sources_empty(async_client: httpx.AsyncClient, httpx_mock: HTTPXMock):
-    httpx_mock.add_response(url=PhotoMocks.HX_PHOTO_URL, **PhotoMocks.HX_PHOTO_RESP_502)
-    httpx_mock.add_response(url=PhotoMocks.AD_PHOTO_URL, **PhotoMocks.AD_PHOTO_RESP_404)
-    httpx_mock.add_response(url=PhotoMocks.PS_HEX_PHOTO_URL, **PhotoMocks.PS_PHOTO_RESP_200)
-    httpx_mock.add_response(url=PhotoMocks.PS_REG_PHOTO_URL, **PhotoMocks.PS_PHOTO_RESP_200)
+async def test_hx_ad_photo_sources_empty(async_client: httpx2.AsyncClient, httpx2_mock: HTTPXMock):
+    httpx2_mock.add_response(url=PhotoMocks.HX_PHOTO_URL, **PhotoMocks.HX_PHOTO_RESP_502)
+    httpx2_mock.add_response(url=PhotoMocks.AD_PHOTO_URL, **PhotoMocks.AD_PHOTO_RESP_404)
+    httpx2_mock.add_response(url=PhotoMocks.PS_HEX_PHOTO_URL, **PhotoMocks.PS_PHOTO_RESP_200)
+    httpx2_mock.add_response(url=PhotoMocks.PS_REG_PHOTO_URL, **PhotoMocks.PS_PHOTO_RESP_200)
 
     photos = await AircraftPhoto.get_photos(
         async_client, AIRCRAFT_ICAO, AIRCRAFT_REG, (PhotoSource.HX, PhotoSource.AD, PhotoSource.PS)
@@ -125,8 +125,8 @@ async def test_hx_ad_photo_sources_empty(async_client: httpx.AsyncClient, httpx_
 
 
 @pytest.mark.asyncio
-async def test_ad_photo_source_requested(async_client: httpx.AsyncClient, httpx_mock: HTTPXMock):
-    httpx_mock.add_response(url=PhotoMocks.AD_PHOTO_URL, **PhotoMocks.AD_PHOTO_RESP_200)
+async def test_ad_photo_source_requested(async_client: httpx2.AsyncClient, httpx2_mock: HTTPXMock):
+    httpx2_mock.add_response(url=PhotoMocks.AD_PHOTO_URL, **PhotoMocks.AD_PHOTO_RESP_200)
 
     photos = await AircraftPhoto.get_photos(async_client, AIRCRAFT_ICAO, AIRCRAFT_REG, (PhotoSource.AD,))
 
@@ -134,9 +134,9 @@ async def test_ad_photo_source_requested(async_client: httpx.AsyncClient, httpx_
 
 
 @pytest.mark.asyncio
-async def test_hx_and_ad_photo_source_requested(async_client: httpx.AsyncClient, httpx_mock: HTTPXMock):
-    httpx_mock.add_response(url=PhotoMocks.HX_PHOTO_URL, **PhotoMocks.HX_PHOTO_RESP_200)
-    httpx_mock.add_response(url=PhotoMocks.AD_PHOTO_URL, **PhotoMocks.AD_PHOTO_RESP_502)
+async def test_hx_and_ad_photo_source_requested(async_client: httpx2.AsyncClient, httpx2_mock: HTTPXMock):
+    httpx2_mock.add_response(url=PhotoMocks.HX_PHOTO_URL, **PhotoMocks.HX_PHOTO_RESP_200)
+    httpx2_mock.add_response(url=PhotoMocks.AD_PHOTO_URL, **PhotoMocks.AD_PHOTO_RESP_502)
 
     photos = await AircraftPhoto.get_photos(async_client, AIRCRAFT_ICAO, AIRCRAFT_REG, (PhotoSource.AD, PhotoSource.HX))
 
@@ -144,7 +144,7 @@ async def test_hx_and_ad_photo_source_requested(async_client: httpx.AsyncClient,
 
 
 @pytest.mark.asyncio
-async def test_no_photo_sources_requested(async_client: httpx.AsyncClient):
+async def test_no_photo_sources_requested(async_client: httpx2.AsyncClient):
     photos = await AircraftPhoto.get_photos(async_client, AIRCRAFT_ICAO, AIRCRAFT_REG, {})
 
     assert photos == [PHOTO_EMPTY]

@@ -1,7 +1,7 @@
 import asyncio
 from collections.abc import Generator, AsyncGenerator
 
-import httpx
+import httpx2
 
 from .osn import OSN
 from .utils import PlaneAboveClient, log
@@ -40,7 +40,7 @@ class PlaneAbove:
 
     async def _collect_data(
         self,
-        client: httpx.AsyncClient,
+        client: httpx2.AsyncClient,
         f_object: FlyingObject,
     ) -> tuple[Aircraft, Flight, State]:
         try:
@@ -105,7 +105,7 @@ class PlaneAbove:
         headers = {"User-Agent": self.config.user_agent} if self.config.user_agent else {}
         mounts = (
             {
-                f"all://*{source.value}": httpx.AsyncHTTPTransport(proxy=self.config.proxy_url)
+                f"all://*{source.value}": httpx2.AsyncHTTPTransport(proxy=self.config.proxy_url)
                 for source in self.config.proxy_scope
             }
             if self.config.proxy_url and self.config.proxy_scope

@@ -111,8 +111,8 @@ class FlightRoute:
         if last_update is None:
             return True
         try:
-            updated_at = datetime.datetime.fromtimestamp(last_update, tz=datetime.timezone.utc)
-            now = datetime.datetime.now(tz=datetime.timezone.utc)
+            updated_at = datetime.datetime.fromtimestamp(last_update, tz=datetime.UTC)
+            now = datetime.datetime.now(tz=datetime.UTC)
             return now - updated_at > datetime.timedelta(days=365 * max_age_years)
         except (ValueError, TypeError):
             return True

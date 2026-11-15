@@ -25,7 +25,7 @@ class OSNAuth:
         self.expires_at: datetime.datetime | None = None
 
     def get_token(self, client: httpx.Client) -> str | None:
-        if self.token and self.expires_at and datetime.datetime.now(tz=datetime.timezone.utc) < self.expires_at:
+        if self.token and self.expires_at and datetime.datetime.now(tz=datetime.UTC) < self.expires_at:
             return self.token
         return self._refresh(client)
 
@@ -42,7 +42,7 @@ class OSNAuth:
             r.raise_for_status()
             data = r.json()
             self.token = data.get("access_token")
-            self.expires_at = datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(
+            self.expires_at = datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(
                 seconds=data.get("expires_in", 1800) - 30
             )
             return self.token

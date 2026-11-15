@@ -89,7 +89,7 @@ class AircraftDetails:
 
             try:
                 built = datetime.datetime.strptime(year_built, "%Y")
-                now = datetime.datetime.now(tz=datetime.timezone.utc)
+                now = datetime.datetime.now(tz=datetime.UTC)
                 age = round(now.year - built.year + (now.month - 1) / 12.0, ndigits=1)
                 return age if age > 0 else 0.0
 

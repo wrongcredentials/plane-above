@@ -2,7 +2,7 @@ import json
 from typing import Any
 from dataclasses import dataclass
 
-import httpx
+import httpx2
 
 from .locker import SourceLockedError, SourceUnavailableError
 from ..logger import log
@@ -16,7 +16,7 @@ class HttpResult:
     headers: dict[Any, Any]
 
 
-async def async_get(async_client: httpx.AsyncClient, *args: Any, **kwargs: Any) -> HttpResult:
+async def async_get(async_client: httpx2.AsyncClient, *args: Any, **kwargs: Any) -> HttpResult:
     try:
         r = await async_client.get(*args, **kwargs)
         r.raise_for_status()
@@ -26,19 +26,19 @@ async def async_get(async_client: httpx.AsyncClient, *args: Any, **kwargs: Any) 
 
     except SourceLockedError as exc:
         log.warning(f" ✈ Source is locked: {exc}")
-        return HttpResult(httpx.codes.SERVICE_UNAVAILABLE, "", {}, {})
+        return HttpResult(httpx2.codes.SERVICE_UNAVAILABLE, "", {}, {})
 
     except SourceUnavailableError as exc:
         log.error(f" ✈ Source unavailable: {exc}; locking for future calls.")
-        return HttpResult(httpx.codes.GATEWAY_TIMEOUT, "", {}, {})
+        return HttpResult(httpx2.codes.GATEWAY_TIMEOUT, "", {}, {})
 
     except json.JSONDecodeError as exc:
         log.error(f" ✈ Exception occurred with parsing json: {exc}")
-        return HttpResult(httpx.codes.INTERNAL_SERVER_ERROR, "", {}, {})
+        return HttpResult(httpx2.codes.INTERNAL_SERVER_ERROR, "", {}, {})
 
-    except httpx.HTTPStatusError as exc:
+    except httpx2.HTTPStatusError as exc:
         return HttpResult(exc.response.status_code, "", {}, dict(exc.response.headers))
 
-    except httpx.HTTPError as exc:
+    except httpx2.HTTPError as exc:
         log.error(f" ✈ Exception occurred with request: {exc}")
-        return HttpResult(httpx.codes.SERVICE_UNAVAILABLE, "", {}, {})
+        return HttpResult(httpx2.codes.SERVICE_UNAVAILABLE, "", {}, {})

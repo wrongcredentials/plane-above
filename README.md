@@ -5,7 +5,7 @@
 
 <div align="center">
 
-[![python](https://img.shields.io/badge/python-3.10%2B-blue)](https://pypi.org/project/plane-above/)
+[![python](https://img.shields.io/badge/python-3.11%2B-blue)](https://pypi.org/project/plane-above/)
 [![pypi](https://img.shields.io/pypi/v/plane-above.svg)](https://pypi.org/project/plane-above/)
 [![license](https://img.shields.io/pypi/l/plane-above.svg)](https://github.com/wrongcredentials/plane-above/blob/main/LICENSE)
 [![healthcheck](https://github.com/wrongcredentials/plane-above/actions/workflows/sources.yml/badge.svg)](https://github.com/wrongcredentials/plane-above/actions/workflows/sources.yml)

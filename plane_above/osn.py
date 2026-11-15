@@ -2,7 +2,7 @@ import json
 import math
 import datetime
 
-import httpx
+import httpx2
 
 from .utils import log
 from .config import Config
@@ -24,12 +24,12 @@ class OSNAuth:
         self.token: str | None = None
         self.expires_at: datetime.datetime | None = None
 
-    def get_token(self, client: httpx.Client) -> str | None:
-        if self.token and self.expires_at and datetime.datetime.now(tz=datetime.timezone.utc) < self.expires_at:
+    def get_token(self, client: httpx2.Client) -> str | None:
+        if self.token and self.expires_at and datetime.datetime.now(tz=datetime.UTC) < self.expires_at:
             return self.token
         return self._refresh(client)
 
-    def _refresh(self, client: httpx.Client) -> str | None:
+    def _refresh(self, client: httpx2.Client) -> str | None:
         try:
             r = client.post(
                 OPENSKY_AUTH_URL,
@@ -42,16 +42,16 @@ class OSNAuth:
             r.raise_for_status()
             data = r.json()
             self.token = data.get("access_token")
-            self.expires_at = datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(
+            self.expires_at = datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(
                 seconds=data.get("expires_in", 1800) - 30
             )
             return self.token
 
-        except (httpx.ConnectTimeout, httpx.ReadTimeout) as exc:
+        except (httpx2.ConnectTimeout, httpx2.ReadTimeout) as exc:
             log.error(f" ✈ OSN authorization request timeout: {exc}")
             return None
 
-        except (httpx.HTTPError, json.JSONDecodeError) as exc:
+        except (httpx2.HTTPError, json.JSONDecodeError) as exc:
             log.error(f" ✈ Exception occurred with OSN authorization: {exc}")
             return None
 
@@ -89,7 +89,7 @@ class OSN:
 
     @staticmethod
     def _retrieve_objects_in_area(
-        client: httpx.Client,
+        client: httpx2.Client,
         area: dict[str, float],
         auth_token: str | None = "",
     ) -> tuple[list[OSNStateVectorType], bool]:
@@ -103,7 +103,7 @@ class OSN:
             data = r.json()
             return data.get("states") or [], True
 
-        except (httpx.HTTPError, json.JSONDecodeError) as exc:
+        except (httpx2.HTTPError, json.JSONDecodeError) as exc:
             log.error(f" ✈ Exception occurred with OSN request: {exc}")
             return [], False
 
@@ -139,12 +139,12 @@ class OSN:
         area = cls._get_bounding_box(*cls._validate_coordinates(*point), distance)
         headers = {"User-Agent": config.user_agent} if config.user_agent else {}
         mounts = (
-            {f"all://*{DataSource.OS}": httpx.HTTPTransport(proxy=config.proxy_url)}
+            {f"all://*{DataSource.OS}": httpx2.HTTPTransport(proxy=config.proxy_url)}
             if config.proxy_url and DataSource.OS in (config.proxy_scope or ())
             else None
         )
 
-        with httpx.Client(headers=headers, mounts=mounts, timeout=10.0) as client:
+        with httpx2.Client(headers=headers, mounts=mounts, timeout=10.0) as client:
             auth = (
                 OSNAuth(config.osn_id, config.osn_secret).get_token(client)
                 if all((config.osn_id, config.osn_secret))

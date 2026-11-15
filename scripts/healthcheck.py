@@ -4,7 +4,7 @@ from typing import Any
 from urllib.parse import urljoin
 from collections.abc import Callable, Coroutine
 
-import httpx
+import httpx2
 from common import HEADERS, PROXY_MOUNTS
 
 from plane_above.static.enums import DataSource
@@ -21,7 +21,7 @@ log = logging.getLogger(__name__)
 
 AIRCRAFT_ICAO = "06A07A"
 AIRPORT_IATA = "ICN"
-SOURCES: dict[str, Callable[[httpx.AsyncClient], Coroutine[Any, Any, httpx.Response]]] = {
+SOURCES: dict[str, Callable[[httpx2.AsyncClient], Coroutine[Any, Any, httpx2.Response]]] = {
     DataSource.OS: lambda c: c.get(urljoin(OPENSKY_API_BASE_URL, "states/all")),
     DataSource.HX: lambda c: c.get(urljoin(AIRPORT_DETAILS_HX_SOURCE_URL, AIRPORT_IATA)),
     DataSource.SB: lambda c: c.get(urljoin(ADSB_DB_API_BASE_URL, "online")),
@@ -40,18 +40,18 @@ SOURCES: dict[str, Callable[[httpx.AsyncClient], Coroutine[Any, Any, httpx.Respo
 
 async def main() -> int:
     async def _check_source(
-        _client: httpx.AsyncClient,
+        _client: httpx2.AsyncClient,
         name: str,
-        request: Callable[[httpx.AsyncClient], Coroutine[Any, Any, httpx.Response]],
+        request: Callable[[httpx2.AsyncClient], Coroutine[Any, Any, httpx2.Response]],
     ) -> str | None:
         try:
             r = await request(_client)
             r.raise_for_status()
             return None
-        except httpx.HTTPError as exc:
+        except httpx2.HTTPError as exc:
             return f"{name}: {exc}"
 
-    async with httpx.AsyncClient(timeout=10.0, mounts=PROXY_MOUNTS) as client:
+    async with httpx2.AsyncClient(timeout=10.0, mounts=PROXY_MOUNTS) as client:
         results = await asyncio.gather(*(_check_source(client, name, request) for name, request in SOURCES.items()))
 
     if failed_sources := [r for r in results if r is not None]:

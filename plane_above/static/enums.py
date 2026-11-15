@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class DataSource(str, Enum):
+class DataSource(StrEnum):
     OPENSKY = OS = "opensky-network.org"  # https://opensky-network.org/about/terms-of-use
     HEX_DB = HX = "hexdb.io"  # https://hexdb.io/
     ADSB_DB = SB = "adsbdb.com"  # https://www.adsbdb.com/
@@ -9,16 +9,13 @@ class DataSource(str, Enum):
     PLANESPOTTERS = PS = "planespotters.net"  # https://www.planespotters.net/photo/api#terms
     FLIGHT_DB = FD = "flightdb.net"  # https://www.flightdb.net/faq.php
 
-    def __str__(self) -> str:
-        return self.value  # pragma: no cover
 
-
-class RouteSource(Enum):
+class RouteSource(StrEnum):
     HEX_DB = HX = DataSource.HX
     ADSB_DB = SB = DataSource.SB
 
 
-class PhotoSource(Enum):
+class PhotoSource(StrEnum):
     HEX_DB = HX = DataSource.HX
     AIRPORT_DATA = AD = DataSource.AD
     PLANESPOTTERS = PS = DataSource.PS

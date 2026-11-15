@@ -4,8 +4,7 @@ from typing import Any
 from urllib.parse import urljoin
 from collections.abc import Callable, Coroutine, Collection
 
-import httpx
-from dateutil.relativedelta import relativedelta
+import httpx2
 
 from .utils import log, async_get
 from .models import Flight, Airport
@@ -20,7 +19,7 @@ from .static import (
 
 class FlightRoute:
     @staticmethod
-    async def _get_airport_details(_client: httpx.AsyncClient, iata: str) -> Airport:
+    async def _get_airport_details(_client: httpx2.AsyncClient, iata: str) -> Airport:
         result = await async_get(_client, urljoin(AIRPORT_DETAILS_HX_SOURCE_URL, iata))
         name = result.json_data.get("airport") or ""
         country_code = result.json_data.get("country_code") or ""
@@ -37,7 +36,7 @@ class FlightRoute:
     @classmethod
     async def _build_flight_from_hx(
         cls,
-        _client: httpx.AsyncClient,
+        _client: httpx2.AsyncClient,
         callsign: str,
         departure_iata: str,
         destination_iata: str,
@@ -82,10 +81,10 @@ class FlightRoute:
 
     @staticmethod
     async def _get_route_from_hx(
-        _client: httpx.AsyncClient, callsign: str
+        _client: httpx2.AsyncClient, callsign: str
     ) -> tuple[str, str, list[str], int | None] | None:
         result = await async_get(_client, urljoin(ROUTE_DETAILS_HX_SOURCE_URL, callsign))
-        if (result.status_code != httpx.codes.NOT_FOUND) and (route := result.json_data.get("route")):
+        if (result.status_code != httpx2.codes.NOT_FOUND) and (route := result.json_data.get("route")):
             try:
                 departure_iata, *stops, destination_iata = route.split("-")
                 return departure_iata, destination_iata, stops, result.json_data.get("updatetime")
@@ -95,10 +94,10 @@ class FlightRoute:
 
     @staticmethod
     async def _get_route_from_sb(
-        _client: httpx.AsyncClient, callsign: str
+        _client: httpx2.AsyncClient, callsign: str
     ) -> tuple[str, str, list[str], dict[str, Any]] | None:
         result = await async_get(_client, urljoin(ROUTE_DETAILS_SB_SOURCE_URL, callsign))
-        if not httpx.codes.is_success(result.status_code) or not result.json_data:
+        if not httpx2.codes.is_success(result.status_code) or not result.json_data:
             return None
 
         response = result.json_data.get("response", {}).get("flightroute", {})
@@ -112,14 +111,14 @@ class FlightRoute:
         if last_update is None:
             return True
         try:
-            updated_at = datetime.datetime.fromtimestamp(last_update, tz=datetime.timezone.utc)
-            now = datetime.datetime.now(tz=datetime.timezone.utc)
-            return bool(updated_at + relativedelta(years=max_age_years) < now)
+            updated_at = datetime.datetime.fromtimestamp(last_update, tz=datetime.UTC)
+            now = datetime.datetime.now(tz=datetime.UTC)
+            return now - updated_at > datetime.timedelta(days=365 * max_age_years)
         except (ValueError, TypeError):
             return True
 
     @classmethod
-    async def get_route(cls, _client: httpx.AsyncClient, callsign: str, sources: Collection[RouteSource]) -> Flight:
+    async def get_route(cls, _client: httpx2.AsyncClient, callsign: str, sources: Collection[RouteSource]) -> Flight:
         tasks: dict[RouteSource, Callable[[], Coroutine[Any, Any, Any]]] = {
             RouteSource.HX: lambda: cls._get_route_from_hx(_client, callsign),
             RouteSource.SB: lambda: cls._get_route_from_sb(_client, callsign),

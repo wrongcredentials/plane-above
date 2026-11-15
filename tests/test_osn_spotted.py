@@ -1,4 +1,4 @@
-import pytest_httpx
+from pytest_httpx2 import HTTPXMock
 
 from tests import OSNMocks
 from tests.data import COORDINATES
@@ -6,8 +6,8 @@ from plane_above import PlaneAbove
 from plane_above.models import State, FlyingObject
 
 
-def test_retrieve_ok(httpx_mock: pytest_httpx.HTTPXMock):
-    httpx_mock.add_response(**OSNMocks.OSN_STATES_RESP_200)
+def test_retrieve_ok(httpx2_mock: HTTPXMock):
+    httpx2_mock.add_response(**OSNMocks.OSN_STATES_RESP_200)
     plane_above = PlaneAbove(COORDINATES)
     assert plane_above.spotted.objects_raw == OSNMocks.OSN_STATES_RESP_200["json"]["states"]
     assert plane_above.spotted.objects_filtered == [
@@ -28,8 +28,8 @@ def test_retrieve_ok(httpx_mock: pytest_httpx.HTTPXMock):
     assert plane_above.spotted.how_many == 1
 
 
-def test_retrieve_no_planes(httpx_mock: pytest_httpx.HTTPXMock):
-    httpx_mock.add_response(**OSNMocks.OSN_STATES_RESP_404)
+def test_retrieve_no_planes(httpx2_mock: HTTPXMock):
+    httpx2_mock.add_response(**OSNMocks.OSN_STATES_RESP_404)
     plane_above = PlaneAbove(COORDINATES)
     assert plane_above.spotted.objects_raw == []
     assert plane_above.spotted.objects_filtered == []
@@ -39,8 +39,8 @@ def test_retrieve_no_planes(httpx_mock: pytest_httpx.HTTPXMock):
     assert list(plane_above.fetch()) == []
 
 
-def test_retrieve_unavailable(httpx_mock: pytest_httpx.HTTPXMock):
-    httpx_mock.add_response(**OSNMocks.OSN_STATES_RESP_502)
+def test_retrieve_unavailable(httpx2_mock: HTTPXMock):
+    httpx2_mock.add_response(**OSNMocks.OSN_STATES_RESP_502)
     plane_above = PlaneAbove(COORDINATES)
     assert plane_above.spotted.objects_raw == []
     assert plane_above.spotted.objects_filtered == []
@@ -50,8 +50,8 @@ def test_retrieve_unavailable(httpx_mock: pytest_httpx.HTTPXMock):
     assert list(plane_above.fetch()) == []
 
 
-def test_retrieve_wrong_content_type(httpx_mock: pytest_httpx.HTTPXMock):
-    httpx_mock.add_response(content=b"<!doctype html>")
+def test_retrieve_wrong_content_type(httpx2_mock: HTTPXMock):
+    httpx2_mock.add_response(content=b"<!doctype html>")
     plane_above = PlaneAbove(COORDINATES)
     assert plane_above.spotted.objects_raw == []
     assert plane_above.spotted.objects_filtered == []

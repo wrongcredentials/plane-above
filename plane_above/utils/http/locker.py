@@ -1,11 +1,11 @@
-import httpx
+import httpx2
 
 
-class SourceLockedError(httpx.RequestError):
+class SourceLockedError(httpx2.RequestError):
     pass
 
 
-class SourceUnavailableError(httpx.RequestError):
+class SourceUnavailableError(httpx2.RequestError):
     pass
 
 

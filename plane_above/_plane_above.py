@@ -1,16 +1,14 @@
 import asyncio
-import warnings
-from typing import Any
 from collections.abc import Generator, AsyncGenerator
 
-import httpx
+import httpx2
 
 from .osn import OSN
 from .utils import PlaneAboveClient, log
 from .config import Config
 from .flight import FlightRoute
 from .models import Above, Photo, State, Flight, Airport, Spotted, Aircraft, FlyingObject
-from .static import DEFAULT_DISTANCE_FROM_POINT, DataSource
+from .static import DEFAULT_DISTANCE_FROM_POINT
 from .aircraft import AircraftDetails
 
 
@@ -29,7 +27,6 @@ class PlaneAbove:
         point: tuple[float, float],
         distance: float = DEFAULT_DISTANCE_FROM_POINT,
         config: Config | None = None,
-        **kwargs: Any,
     ):
         """Initialize PlaneAbove client with search parameters and API credentials.
 
@@ -38,30 +35,12 @@ class PlaneAbove:
             distance: Search radius in kilometers from the given point.
             config: Configuration parameters.
         """
-        default_config = Config()
-        if kwargs:
-            warnings.warn(
-                f"'{', '.join(kwargs.keys())}' will be removed in v1.0.0, use 'Config' for correct setup",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            self.config = Config(
-                route_sources=kwargs.get("route_sources", default_config.route_sources),
-                photo_sources=kwargs.get("photo_sources", default_config.photo_sources),
-                user_agent=kwargs.get("ps_user_agent", default_config.user_agent),
-                proxy_url=kwargs.get("osn_proxy", default_config.proxy_url),
-                proxy_scope=(DataSource.OPENSKY,),
-                osn_id=kwargs.get("osn_id", default_config.osn_id),
-                osn_secret=kwargs.get("osn_secret", default_config.osn_secret),
-            )
-        else:
-            self.config = config or default_config
-
+        self.config = config or Config()
         self.spotted = Spotted(*OSN.get_flying_objects(point, distance, self.config), errors=[])
 
     async def _collect_data(
         self,
-        client: httpx.AsyncClient,
+        client: httpx2.AsyncClient,
         f_object: FlyingObject,
     ) -> tuple[Aircraft, Flight, State]:
         try:
@@ -126,7 +105,7 @@ class PlaneAbove:
         headers = {"User-Agent": self.config.user_agent} if self.config.user_agent else {}
         mounts = (
             {
-                f"all://*{source.value}": httpx.AsyncHTTPTransport(proxy=self.config.proxy_url)
+                f"all://*{source.value}": httpx2.AsyncHTTPTransport(proxy=self.config.proxy_url)
                 for source in self.config.proxy_scope
             }
             if self.config.proxy_url and self.config.proxy_scope

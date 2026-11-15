@@ -1,7 +1,7 @@
 import json
 
 import pytest
-from pytest_httpx import HTTPXMock
+from pytest_httpx2 import HTTPXMock
 
 from tests import PhotoMocks, FlightMocks, AircraftMocks
 from tests.data import AIRCRAFT_AGE, AIRCRAFT_ICAO, FLIGHT_CALLSIGN, AIRCRAFT_COUNTRY
@@ -16,7 +16,7 @@ from tests.data.osn.flying_objects import ABOVE_FETCH
     [ABOVE_FETCH],
     indirect=True,
 )
-def test_sync_fetch(plane_above_mock, httpx_mock: HTTPXMock):
+def test_sync_fetch(plane_above_mock, httpx2_mock: HTTPXMock):
     assert plane_above_mock.spotted.objects_raw == ABOVE_FETCH
     assert plane_above_mock.spotted.objects_filtered == [
         FlyingObject(
@@ -30,15 +30,15 @@ def test_sync_fetch(plane_above_mock, httpx_mock: HTTPXMock):
     assert plane_above_mock.spotted.success is True
     assert plane_above_mock.spotted.how_many == 1
 
-    httpx_mock.add_response(url=AircraftMocks.SB_AIRCRAFT_URL, **AircraftMocks.SB_AIRCRAFT_RESP_200)
-    httpx_mock.add_response(url=AircraftMocks.HX_AIRCRAFT_URL, **AircraftMocks.HX_AIRCRAFT_RESP_200)
-    httpx_mock.add_response(url=AircraftMocks.FD_AIRCRAFT_URL, **AircraftMocks.FD_AIRCRAFT_RESP_200)
-    httpx_mock.add_response(url=AircraftMocks.AD_AIRCRAFT_URL, **AircraftMocks.AD_AIRCRAFT_RESP_200)
-    httpx_mock.add_response(url=PhotoMocks.HX_PHOTO_URL, **PhotoMocks.HX_PHOTO_RESP_200)
+    httpx2_mock.add_response(url=AircraftMocks.SB_AIRCRAFT_URL, **AircraftMocks.SB_AIRCRAFT_RESP_200)
+    httpx2_mock.add_response(url=AircraftMocks.HX_AIRCRAFT_URL, **AircraftMocks.HX_AIRCRAFT_RESP_200)
+    httpx2_mock.add_response(url=AircraftMocks.FD_AIRCRAFT_URL, **AircraftMocks.FD_AIRCRAFT_RESP_200)
+    httpx2_mock.add_response(url=AircraftMocks.AD_AIRCRAFT_URL, **AircraftMocks.AD_AIRCRAFT_RESP_200)
+    httpx2_mock.add_response(url=PhotoMocks.HX_PHOTO_URL, **PhotoMocks.HX_PHOTO_RESP_200)
 
-    httpx_mock.add_response(url=FlightMocks.HX_ROUTE_URL, **FlightMocks.HX_ROUTE_RESP_200)
-    httpx_mock.add_response(url=FlightMocks.HX_DEP_AIRPORT_URL, **FlightMocks.HX_AIRPORT_RESP_200)
-    httpx_mock.add_response(url=FlightMocks.HX_DST_AIRPORT_URL, **FlightMocks.HX_AIRPORT_RESP_200)
+    httpx2_mock.add_response(url=FlightMocks.HX_ROUTE_URL, **FlightMocks.HX_ROUTE_RESP_200)
+    httpx2_mock.add_response(url=FlightMocks.HX_DEP_AIRPORT_URL, **FlightMocks.HX_AIRPORT_RESP_200)
+    httpx2_mock.add_response(url=FlightMocks.HX_DST_AIRPORT_URL, **FlightMocks.HX_AIRPORT_RESP_200)
 
     for above in plane_above_mock.fetch():
         assert above.aircraft.icao24 == AIRCRAFT_ICAO
@@ -76,7 +76,7 @@ def test_sync_fetch(plane_above_mock, httpx_mock: HTTPXMock):
     [ABOVE_FETCH],
     indirect=True,
 )
-async def test_async_fetch(plane_above_mock, httpx_mock: HTTPXMock):
+async def test_async_fetch(plane_above_mock, httpx2_mock: HTTPXMock):
     assert plane_above_mock.spotted.objects_raw == ABOVE_FETCH
     assert plane_above_mock.spotted.objects_filtered == [
         FlyingObject(
@@ -90,43 +90,43 @@ async def test_async_fetch(plane_above_mock, httpx_mock: HTTPXMock):
     assert plane_above_mock.spotted.success is True
     assert plane_above_mock.spotted.how_many == 1
 
-    httpx_mock.add_response(url=AircraftMocks.SB_AIRCRAFT_URL, **AircraftMocks.SB_AIRCRAFT_RESP_200)
-    httpx_mock.add_response(url=AircraftMocks.HX_AIRCRAFT_URL, **AircraftMocks.HX_AIRCRAFT_RESP_200)
-    httpx_mock.add_response(url=AircraftMocks.FD_AIRCRAFT_URL, **AircraftMocks.FD_AIRCRAFT_RESP_404)
-    httpx_mock.add_response(url=AircraftMocks.AD_AIRCRAFT_URL, **AircraftMocks.AD_AIRCRAFT_RESP_404)
+    httpx2_mock.add_response(url=AircraftMocks.SB_AIRCRAFT_URL, **AircraftMocks.SB_AIRCRAFT_RESP_200)
+    httpx2_mock.add_response(url=AircraftMocks.HX_AIRCRAFT_URL, **AircraftMocks.HX_AIRCRAFT_RESP_200)
+    httpx2_mock.add_response(url=AircraftMocks.FD_AIRCRAFT_URL, **AircraftMocks.FD_AIRCRAFT_RESP_404)
+    httpx2_mock.add_response(url=AircraftMocks.AD_AIRCRAFT_URL, **AircraftMocks.AD_AIRCRAFT_RESP_404)
 
-    httpx_mock.add_response(url=PhotoMocks.HX_PHOTO_URL, **PhotoMocks.HX_PHOTO_RESP_200)
+    httpx2_mock.add_response(url=PhotoMocks.HX_PHOTO_URL, **PhotoMocks.HX_PHOTO_RESP_200)
 
-    httpx_mock.add_response(url=FlightMocks.HX_ROUTE_URL, **FlightMocks.HX_ROUTE_MP_RESP_200)
-    httpx_mock.add_response(url=FlightMocks.HX_DEP_AIRPORT_URL, **FlightMocks.HX_AIRPORT_RESP_200)
-    httpx_mock.add_response(url=FlightMocks.HX_MID_AIRPORT_URL, **FlightMocks.HX_AIRPORT_RESP_200)
-    httpx_mock.add_response(url=FlightMocks.HX_DST_AIRPORT_URL, **FlightMocks.HX_AIRPORT_RESP_200)
+    httpx2_mock.add_response(url=FlightMocks.HX_ROUTE_URL, **FlightMocks.HX_ROUTE_MP_RESP_200)
+    httpx2_mock.add_response(url=FlightMocks.HX_DEP_AIRPORT_URL, **FlightMocks.HX_AIRPORT_RESP_200)
+    httpx2_mock.add_response(url=FlightMocks.HX_MID_AIRPORT_URL, **FlightMocks.HX_AIRPORT_RESP_200)
+    httpx2_mock.add_response(url=FlightMocks.HX_DST_AIRPORT_URL, **FlightMocks.HX_AIRPORT_RESP_200)
 
     async for above in plane_above_mock.async_fetch():
-        assert above.icao24 == AIRCRAFT_ICAO
-        assert above.callsign == FLIGHT_CALLSIGN
-        assert above.country_code == "KR"
+        assert above.aircraft.icao24 == AIRCRAFT_ICAO
+        assert above.flight.callsign == FLIGHT_CALLSIGN
+        assert above.aircraft.country == "Korea, Republic of"
         assert above.aircraft.age == 0.0
         assert above.aircraft.registration == "A7-BCA"
         assert above.aircraft.manufacturer == "Boeing"
         assert above.aircraft.model == "737-8 MAX"
         assert above.aircraft.type_code == "B788"
         assert above.aircraft.operator == "Qatar Airways"
-        assert above.photo._has_urls is True
-        assert above.photo.image_url == "https://hexdb.io/static/aircraft-images/PH-BXC.jpg"
-        assert above.photo.origin_url == "https://hexdb.io/static/aircraft-images/PH-BXC.jpg"
-        assert above.photo.photographer == ""
-        assert above.route.departure.iata == "DEP"
-        assert above.route.departure.name == "Valencia Airport"
-        assert above.route.departure.country_code == "ES"
-        assert above.route.destination.iata == "DST"
-        assert above.route.destination.name == "Valencia Airport"
-        assert above.route.destination.country_code == "ES"
-        assert len(above.route.stops) == 1
-        assert above.route.stops[0].iata == "MID"
-        assert above.route.stops[0].name == "Valencia Airport"
-        assert above.route.stops[0].country_code == "ES"
-        assert above.route.airline == ""
+        assert above.aircraft.photos[0]._has_urls is True
+        assert above.aircraft.photos[0].image_url == "https://hexdb.io/static/aircraft-images/PH-BXC.jpg"
+        assert above.aircraft.photos[0].origin_url == "https://hexdb.io/static/aircraft-images/PH-BXC.jpg"
+        assert above.aircraft.photos[0].photographer == ""
+        assert above.flight.departure.iata == "DEP"
+        assert above.flight.departure.name == "Valencia Airport"
+        assert above.flight.departure.country_code == "ES"
+        assert above.flight.destination.iata == "DST"
+        assert above.flight.destination.name == "Valencia Airport"
+        assert above.flight.destination.country_code == "ES"
+        assert len(above.flight.stops) == 1
+        assert above.flight.stops[0].iata == "MID"
+        assert above.flight.stops[0].name == "Valencia Airport"
+        assert above.flight.stops[0].country_code == "ES"
+        assert above.flight.airline == ""
         assert above.state.altitude == 366
         assert above.state.velocity == 174
         assert above.state.latitude == 51.5724
@@ -138,7 +138,7 @@ async def test_async_fetch(plane_above_mock, httpx_mock: HTTPXMock):
     [ABOVE_FETCH],
     indirect=True,
 )
-def test_fetch_error(plane_above_mock, monkeypatch, httpx_mock: HTTPXMock):
+def test_fetch_error(plane_above_mock, monkeypatch):
     async def broken_get_details(*args, **kwargs):
         raise RuntimeError("Pull up!")
 

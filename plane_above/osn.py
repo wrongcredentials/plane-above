@@ -5,39 +5,39 @@ import datetime
 import httpx
 
 from .utils import log
+from .config import Config
 from .models import State, FlyingObject
 from .static import (
     EARTH_RADIUS,
     OPENSKY_AUTH_URL,
     AIRCRAFT_IN_AREA_SOURCE_URL,
     DEFAULT_DISTANCE_FROM_POINT,
+    DataSource,
     OSNStateVectorType,
 )
 
 
 class OSNAuth:
-    def __init__(self, client_id: str, client_secret: str, proxy: str | None = None):
-        self.proxy = proxy
+    def __init__(self, client_id: str, client_secret: str):
         self.client_id = client_id
         self.client_secret = client_secret
         self.token: str | None = None
         self.expires_at: datetime.datetime | None = None
 
-    def get_token(self) -> str | None:
+    def get_token(self, client: httpx.Client) -> str | None:
         if self.token and self.expires_at and datetime.datetime.now(tz=datetime.timezone.utc) < self.expires_at:
             return self.token
-        return self._refresh()
+        return self._refresh(client)
 
-    def _refresh(self) -> str | None:
+    def _refresh(self, client: httpx.Client) -> str | None:
         try:
-            r = httpx.post(
+            r = client.post(
                 OPENSKY_AUTH_URL,
                 data={
                     "grant_type": "client_credentials",
                     "client_id": self.client_id,
                     "client_secret": self.client_secret,
                 },
-                proxy=self.proxy,
             )
             r.raise_for_status()
             data = r.json()
@@ -89,17 +89,15 @@ class OSN:
 
     @staticmethod
     def _retrieve_objects_in_area(
+        client: httpx.Client,
         area: dict[str, float],
         auth_token: str | None = "",
-        proxy: str | None = "",
     ) -> tuple[list[OSNStateVectorType], bool]:
         try:
-            r = httpx.get(
+            r = client.get(
                 AIRCRAFT_IN_AREA_SOURCE_URL,
                 headers={"Authorization": f"Bearer {auth_token}"} if auth_token else {},
                 params=dict(**area, extended=1),
-                timeout=10.0,
-                proxy=proxy,
             )
             r.raise_for_status()
             data = r.json()
@@ -135,13 +133,23 @@ class OSN:
         cls,
         point: tuple[float, float],
         distance: float,
-        osn_id: str,
-        osn_secret: str,
-        osn_proxy: str | None = None,
+        config: Config,
     ) -> tuple[list[OSNStateVectorType], list[FlyingObject], bool, int]:
 
         area = cls._get_bounding_box(*cls._validate_coordinates(*point), distance)
-        auth = OSNAuth(osn_id, osn_secret, osn_proxy).get_token() if all((osn_id, osn_secret)) else ""
-        objects_raw, success = cls._retrieve_objects_in_area(area, auth_token=auth, proxy=osn_proxy)
-        objects_filtered, how_many = cls._filter_objects(objects_raw)
-        return objects_raw, objects_filtered, success, how_many
+        headers = {"User-Agent": config.user_agent} if config.user_agent else {}
+        mounts = (
+            {f"all://*{DataSource.OS}": httpx.HTTPTransport(proxy=config.proxy_url)}
+            if config.proxy_url and DataSource.OS in (config.proxy_scope or ())
+            else None
+        )
+
+        with httpx.Client(headers=headers, mounts=mounts, timeout=10.0) as client:
+            auth = (
+                OSNAuth(config.osn_id, config.osn_secret).get_token(client)
+                if all((config.osn_id, config.osn_secret))
+                else ""
+            )
+            objects_raw, success = cls._retrieve_objects_in_area(client, area, auth_token=auth)
+            objects_filtered, how_many = cls._filter_objects(objects_raw)
+            return objects_raw, objects_filtered, success, how_many

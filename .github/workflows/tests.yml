@@ -67,7 +67,7 @@ jobs:
 
       - name: Pytest
         env:
-          PS_USER_AGENT: ${{ vars.PS_USER_AGENT }}
+          USER_AGENT: ${{ vars.USER_AGENT }}
         run: uv run pytest --cov --cov-report=xml
 
       - name: Upload coverage to Codecov

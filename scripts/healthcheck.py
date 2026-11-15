@@ -7,7 +7,7 @@ from collections.abc import Callable, Coroutine
 import httpx
 from common import HEADERS, PROXY_MOUNTS
 
-from plane_above.static.enums import Source
+from plane_above.static.enums import DataSource
 from plane_above.static.sources import (
     ADSB_DB_API_BASE_URL,
     OPENSKY_API_BASE_URL,
@@ -22,16 +22,16 @@ log = logging.getLogger(__name__)
 AIRCRAFT_ICAO = "06A07A"
 AIRPORT_IATA = "ICN"
 SOURCES: dict[str, Callable[[httpx.AsyncClient], Coroutine[Any, Any, httpx.Response]]] = {
-    Source.OS: lambda c: c.get(urljoin(OPENSKY_API_BASE_URL, "states/all")),
-    Source.HX: lambda c: c.get(urljoin(AIRPORT_DETAILS_HX_SOURCE_URL, AIRPORT_IATA)),
-    Source.SB: lambda c: c.get(urljoin(ADSB_DB_API_BASE_URL, "online")),
-    Source.AD: lambda c: c.get(
+    DataSource.OS: lambda c: c.get(urljoin(OPENSKY_API_BASE_URL, "states/all")),
+    DataSource.HX: lambda c: c.get(urljoin(AIRPORT_DETAILS_HX_SOURCE_URL, AIRPORT_IATA)),
+    DataSource.SB: lambda c: c.get(urljoin(ADSB_DB_API_BASE_URL, "online")),
+    DataSource.AD: lambda c: c.get(
         AIRPORT_DETAILS_AD_SOURCE_URL,
         headers=HEADERS,
         params={"iata": AIRPORT_IATA},
     ),
-    Source.FD: lambda c: c.get(AIRCRAFT_DETAILS_FD_SOURCE_URL, params={"modes": AIRCRAFT_ICAO}),
-    Source.PS: lambda c: c.get(
+    DataSource.FD: lambda c: c.get(AIRCRAFT_DETAILS_FD_SOURCE_URL, params={"modes": AIRCRAFT_ICAO}),
+    DataSource.PS: lambda c: c.get(
         urljoin(AIRCRAFT_PHOTO_PS_SOURCE_URL, f"hex/{AIRCRAFT_ICAO}"),
         headers=HEADERS,
     ),

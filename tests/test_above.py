@@ -1,3 +1,5 @@
+import json
+
 import pytest
 from pytest_httpx import HTTPXMock
 
@@ -65,6 +67,7 @@ def test_sync_fetch(plane_above_mock, httpx_mock: HTTPXMock):
         assert above.state.velocity == 174
         assert above.state.latitude == 51.5724
         assert above.state.longitude == 5.2843
+        assert json.loads(above.to_json()) == above.to_dict()
 
 
 @pytest.mark.asyncio
